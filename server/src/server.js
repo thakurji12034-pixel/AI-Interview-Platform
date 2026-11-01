@@ -2,8 +2,10 @@ require('dotenv').config();
 const http = require('http');
 const app = require('./app');
 const sequelize = require('./config/db');
+const { initSockets } = require('./sockets');
 
-const server = http.createServer(app); // Socket.io isi server pe baad me lagega
+const server = http.createServer(app);
+initSockets(server); // Socket.io usi server par chalta hai
 const PORT = process.env.PORT || 5000;
 
 async function start() {
