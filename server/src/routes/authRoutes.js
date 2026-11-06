@@ -1,7 +1,7 @@
 const router = require('express').Router();
+const rateLimit = require('express-rate-limit');
 const validate = require('../middleware/validate');
 const auth = require('../middleware/auth');
-const authorize = require('../middleware/authorize');
 const { registerSchema, loginSchema } = require('../validators/authValidator');
 const {
   register,
@@ -11,15 +11,34 @@ const {
   me,
 } = require('../controllers/authController');
 
-router.post('/register', validate(registerSchema), register);
-router.post('/login', validate(loginSchema), login);
-router.post('/refresh', refresh);
-router.post('/logout', logout);
-router.get('/me', auth, me);
-
-// Sirf role guard test karne ke liye, baad me hata denge
-router.get('/interviewer-check', auth, authorize('interviewer'), (req, res) => {
-  res.json({ message: 'Welcome, interviewer' });
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  statusCode: 429,
+  message: { message: 'Too many attempts, please try again later' },
+  handler: (req, res, _next, options) => {
+    res.status(options.statusCode).json(options.message);
+  },
 });
+
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 200,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  statusCode: 429,
+  message: { message: 'Too many attempts, please try again later' },
+  handler: (req, res, _next, options) => {
+    res.status(options.statusCode).json(options.message);
+  },
+});
+
+router.post('/register', authLimiter, validate(registerSchema), register);
+router.post('/login', authLimiter, validate(loginSchema), login);
+router.post('/refresh', generalLimiter, refresh);
+router.post('/logout', logout);
+router.get('/me', generalLimiter, auth, me);
 
 module.exports = router;
