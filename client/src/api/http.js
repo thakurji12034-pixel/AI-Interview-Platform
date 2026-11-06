@@ -1,12 +1,15 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
 
 // Access token sirf memory me rakhte hain (localStorage me nahi, taaki XSS se chori na ho)
 let accessToken = null;
 export const setAccessToken = (token) => {
   accessToken = token;
 };
+export const getAccessToken = () => accessToken;
 
 const http = axios.create({ baseURL: API_URL, withCredentials: true });
 
@@ -51,7 +54,7 @@ http.interceptors.response.use(
       try {
         await refreshAccessToken();
         return http(original);
-      } catch (e) {
+      } catch {
         accessToken = null;
       }
     }

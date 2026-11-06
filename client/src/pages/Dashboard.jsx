@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
 import InterviewCard from '../components/InterviewCard';
@@ -44,8 +44,21 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
+    (async () => {
+      try {
+        const data = await listInterviews();
+        if (active) setInterviews(data);
+      } catch (err) {
+        if (active) setNotice({ type: 'error', text: errorMessage(err) });
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Notice 4 second baad apne aap hat jaye
   useEffect(() => {
