@@ -159,4 +159,39 @@ Every dependency added to `server/` or `client/` must be recorded here with:
 | `server/tests/redis.test.js` | ADD | 10 automated integration tests covering Redis client, health probes, cache service, and BullMQ queue processing. | Test runner | Phase 3a |
 | `docs/verification/phase-3.md` | ADD | Comprehensive Phase 3 verification report with exact execution output and test counts. | Documentation | Phase 3b |
 
+---
+
+## Phase 4: Question Bank, Templates & Assessments
+
+### Dependency Additions (Justification Table)
+
+No external production dependencies added in Phase 4 (implemented using core Sequelize models, Umzug migrations, and native transaction handlers).
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/migrations/003_questions_and_assessments.js` | ADD | Schema migration creating `questions`, `question_topics`, `test_cases`, `interview_templates`, `assessments`, and `assessment_questions` tables with indexes. | Umzug migrator | Phase 4a |
+| `server/src/models/Question.js` | ADD | Sequelize model for technical questions supporting 10 domains, markdown statements, difficulty, type, and starter code. | Models index | Phase 4a |
+| `server/src/models/QuestionTopic.js` | ADD | Sequelize model for indexing topic tags associated with questions. | Models index | Phase 4a |
+| `server/src/models/TestCase.js` | ADD | Sequelize model storing public and hidden test cases with execution limits and weights. | Models index | Phase 4a |
+| `server/src/models/InterviewTemplate.js` | ADD | Sequelize model for structured multi-section interview templates. | Models index | Phase 4a |
+| `server/src/models/Assessment.js` | ADD | Sequelize model tracking candidate technical assessments and overall completion scores. | Models index | Phase 4a |
+| `server/src/models/AssessmentQuestion.js` | ADD | Sequelize model linking assessment questions, candidate code submissions, and question statuses. | Models index | Phase 4a |
+| `server/src/models/index.js` | MODIFY | Registered models and configured relational associations. | Application models | Phase 4a |
+| `server/src/serializers/questionSerializer.js` | ADD | DTO serializer enforcing role-based filtering and candidate anti-leak guard stripping hidden test cases and reference key points. | Controllers & tests | Phase 4a |
+| `server/src/services/questionService.js` | ADD | Question CRUD, filtering, pagination with 100-limit cap, and randomized selection avoiding past candidate encounters. | Question controller | Phase 4a |
+| `server/src/services/templateService.js` | ADD | Template management service for multi-section assessment blueprints. | Assessment service | Phase 4a |
+| `server/src/services/assessmentService.js` | ADD | Assessment lifecycle manager with randomized template expansion and submission tracking. | Assessment controller | Phase 4a |
+| `server/src/controllers/questionController.js` | ADD | REST controller for question bank operations with audit logging. | Question routes | Phase 4a |
+| `server/src/routes/questionRoutes.js` | ADD | Express router mounted at `/api/v1/questions` with permission middleware. | `server/src/app.js` | Phase 4a |
+| `server/src/controllers/assessmentController.js` | ADD | REST controller for assessment generation and candidate submissions. | Assessment routes | Phase 4a |
+| `server/src/routes/assessmentRoutes.js` | ADD | Express router mounted at `/api/v1/assessments` with IDOR ownership validation. | `server/src/app.js` | Phase 4a |
+| `server/src/scripts/seedQuestions.js` | ADD | Idempotent starter question seeder across all 10 technical domains. | `server/package.json` | Phase 4a |
+| `server/src/config/permissions.js` | MODIFY | Added granular permissions for questions (`questions:read`, `questions:write`) and assessments (`assessments:read`, `assessments:write`). | Permission middleware | Phase 4a |
+| `server/src/app.js` | MODIFY | Mounted versioned routers `/api/v1/questions` and `/api/v1/assessments`. | Application router | Phase 4a |
+| `server/tests/question.test.js` | ADD | 8 automated integration tests verifying CRUD, filters, randomized selection, assessment workflows, and candidate anti-leak regression scanner. | Test runner | Phase 4a |
+| `docs/verification/phase-4.md` | ADD | Comprehensive Phase 4 verification report with exact execution output and test counts. | Documentation | Phase 4b |
+
+
 

@@ -6,7 +6,7 @@
 | **Phase 1** | Foundation, Quality & Deploy-Readiness | **Done** | 2026-11-07T15:10:00+05:30 | 38 / 38 | [`docs/verification/phase-1.md`](file:///d:/ai-interview-platform/docs/verification/phase-1.md) | HS256 pinning, rate limits, non-root Docker, Jest suites, baseline Umzug migration |
 | **Phase 2** | RBAC, Invitations, Admin Core, Audit Logs, Design System & Role Dashboards | **Done** | 2026-11-07T15:43:00+05:30 | 51 / 51 | [`docs/verification/phase-2.md`](file:///d:/ai-interview-platform/docs/verification/phase-2.md) | Granular RBAC, token families with reuse detection, admin API, seed script, design system & dashboards |
 | **Phase 3** | Redis & Background Job Infrastructure | **Done** | 2026-11-07T15:56:00+05:30 | 61 / 61 | [`docs/verification/phase-3.md`](file:///d:/ai-interview-platform/docs/verification/phase-3.md) | Redis client with in-memory mock fallback, cache service, BullMQ queues, worker runner, dual health probe |
-| **Phase 4** | Question Bank, Templates & Assessments | **Not started** | - | - | `docs/verification/phase-4.md` | Module F |
+| **Phase 4** | Question Bank, Templates & Assessments | **Done** | 2026-11-07T16:10:00+05:30 | 69 / 69 | [`docs/verification/phase-4.md`](file:///d:/ai-interview-platform/docs/verification/phase-4.md) | Questions/templates/assessments schema, starter seeds across 10 domains, anti-leak serializer, regression scanner |
 | **Phase 5** | Secure Code Execution | **Not started** | - | - | `docs/verification/phase-5.md` | Module E |
 | **Phase 6** | AI Engine & Resume Intelligence | **Not started** | - | - | `docs/verification/phase-6.md` | Modules A & C |
 | **Phase 7** | AI Answer Evaluation & Reports | **Not started** | - | - | `docs/verification/phase-7.md` | Module B |
