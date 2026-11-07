@@ -120,47 +120,52 @@ async function processCodeExecution(job) {
 }
 
 async function processAiEvaluation(job) {
-  const { evaluationId, interviewId } = job.data;
-  logger.info({ jobId: job.id, evaluationId, interviewId }, '[WORKER] Processing AI evaluation job');
+  logger.info({ jobId: job.id, evaluationId: job.data.evaluationId, interviewId: job.data.interviewId }, '[WORKER] Processing AI evaluation job');
   await job.updateProgress(25);
 
-  if (evaluationId) {
+  if (job.data.evaluationId) {
     const { evaluationService } = require('./services/evaluationService');
-    await evaluationService.processAnswerEvaluation(evaluationId);
-  } else {
-    // Fallback for mock generic queue jobs
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    const result = await evaluationService.processAnswerEvaluation(job.data.evaluationId);
+    await job.updateProgress(100);
+    return {
+      status: 'completed',
+      evaluationId: job.data.evaluationId,
+      result,
+    };
   }
 
+  // Fallback for Phase 3 integration test queue checks
+  await new Promise((resolve) => setTimeout(resolve, 100));
   await job.updateProgress(100);
 
   return {
-    status: evaluationId ? 'completed' : 'evaluated',
-    evaluationId,
-    interviewId,
+    status: 'evaluated',
+    interviewId: job.data.interviewId,
     evaluatedAt: new Date().toISOString(),
   };
 }
 
 async function processResumeParsing(job) {
-  const { resumeId, candidateId } = job.data;
-  logger.info({ jobId: job.id, resumeId, candidateId }, '[WORKER] Processing resume parsing job');
-  await job.updateProgress(30);
+  logger.info({ jobId: job.id, resumeId: job.data.resumeId, candidateId: job.data.candidateId }, '[WORKER] Processing resume parsing job');
+  await job.updateProgress(20);
 
-  if (resumeId) {
+  if (job.data.resumeId) {
     const { resumeService } = require('./services/resumeService');
-    await resumeService.processResumeParsing(resumeId);
-  } else {
-    // Fallback for generic mock test jobs
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    const parsedData = await resumeService.processResumeParsing(job.data.resumeId);
+    await job.updateProgress(100);
+    return {
+      status: 'parsed',
+      resumeId: job.data.resumeId,
+      parsedData,
+    };
   }
 
+  await new Promise((resolve) => setTimeout(resolve, 100));
   await job.updateProgress(100);
 
   return {
     status: 'parsed',
-    resumeId,
-    candidateId,
+    candidateId: job.data.candidateId,
     parsedAt: new Date().toISOString(),
   };
 }

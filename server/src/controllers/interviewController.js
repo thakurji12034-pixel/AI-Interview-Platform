@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
-const { User, Interview } = require('../models');
+const { User, Interview, CodeSnapshot, RoomSession } = require('../models');
 const { TRANSITIONS, addMinutes, findClash } = require('../services/interviewService');
+const { roomStore } = require('../sockets/roomStore');
 
 const withUsers = [
   { model: User, as: 'interviewer', attributes: ['id', 'name', 'email'] },
@@ -173,8 +174,144 @@ exports.updateStatus = async (req, res, next) => {
     }
 
     await interview.update({ status });
+
+    if (status === 'completed' && interview.roomId) {
+      try {
+        await roomStore.saveSnapshot(interview.roomId, req.user.id);
+      } catch (_snapErr) {
+        // Logged internally
+      }
+    }
+
     res.json({ interview });
   } catch (err) {
     next(err);
   }
 };
+
+exports.getSnapshots = async (req, res, next) => {
+  try {
+    const interview = await findMine(req.params.id, req.user.id);
+    if (!interview && req.user.role !== 'admin') {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
+    }
+
+    const target = interview || (await Interview.findByPk(req.params.id));
+    if (!target) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
+    }
+
+    if (req.user.role === 'candidate' && target.interviewerId !== req.user.id) {
+      return res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'Only interviewer or admin can access snapshots' },
+        message: 'Only interviewer or admin can access snapshots',
+      });
+    }
+
+    const snapshots = await CodeSnapshot.findAll({
+      where: { interviewId: target.id },
+      attributes: ['id', 'roomId', 'interviewId', 'language', 'codeContent', 'version', 'createdById', 'createdAt'],
+      order: [
+        ['createdAt', 'DESC'],
+        ['id', 'DESC'],
+      ],
+    });
+
+    res.json({ snapshots });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.createSnapshot = async (req, res, next) => {
+  try {
+    const interview = await findMine(req.params.id, req.user.id);
+    if (!interview && req.user.role !== 'admin') {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
+    }
+
+    const target = interview || (await Interview.findByPk(req.params.id));
+    if (!target) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
+    }
+
+    if (target.interviewerId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'Only interviewer or admin can capture snapshots' },
+        message: 'Only interviewer or admin can capture snapshots',
+      });
+    }
+
+    let snapshot = null;
+    if (roomStore.getRoom(target.roomId)) {
+      snapshot = await roomStore.saveSnapshot(target.roomId, req.user.id);
+    }
+
+    if (!snapshot) {
+      const codeContent = req.body.codeContent || '';
+      const language = req.body.language || 'javascript';
+      snapshot = await CodeSnapshot.create({
+        roomId: target.roomId,
+        interviewId: target.id,
+        language,
+        codeContent,
+        version: 1,
+        createdById: req.user.id,
+      });
+    }
+
+    res.status(201).json({ snapshot });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getRoomSessions = async (req, res, next) => {
+  try {
+    const interview = await findMine(req.params.id, req.user.id);
+    if (!interview && req.user.role !== 'admin') {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
+    }
+
+    const target = interview || (await Interview.findByPk(req.params.id));
+    if (!target) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
+    }
+
+    if (target.interviewerId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'Only interviewer or admin can view room sessions' },
+        message: 'Only interviewer or admin can view room sessions',
+      });
+    }
+
+    const sessions = await RoomSession.findAll({
+      where: { interviewId: target.id },
+      include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email', 'role'] }],
+      order: [['joinedAt', 'ASC']],
+    });
+
+    res.json({ sessions });
+  } catch (err) {
+    next(err);
+  }
+};
+

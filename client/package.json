@@ -14,11 +14,15 @@
     "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.21.0",
     "lucide-react": "^1.70.0",
+    "monaco-editor": "^0.57.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5",
     "socket.io-client": "^4.8.4",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "y-monaco": "^0.1.6",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.33"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

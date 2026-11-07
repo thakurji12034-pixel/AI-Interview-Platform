@@ -27,6 +27,7 @@ const envSchema = Joi.object({
   GEMINI_API_KEY: Joi.string().allow('').default(''),
   GEMINI_MODEL: Joi.string().default('gemini-2.5-flash'),
   AI_MOCK_MODE: Joi.boolean().default(true),
+  COLLAB_ENGINE: Joi.string().valid('legacy', 'yjs').default('yjs'),
 })
   .unknown(true);
 
@@ -82,6 +83,9 @@ module.exports = {
     apiKey: envVars.GEMINI_API_KEY,
     model: envVars.GEMINI_MODEL,
     mockMode: envVars.AI_MOCK_MODE,
+  },
+  collab: {
+    engine: envVars.COLLAB_ENGINE,
   },
 };
 

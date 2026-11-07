@@ -18,4 +18,9 @@ router.get('/:id', ctrl.getOne);
 router.patch('/:id', authorize('interviewer'), validate(updateSchema), ctrl.update);
 router.patch('/:id/status', validate(statusSchema), ctrl.updateStatus);
 
+// Phase 8: Snapshots & Room session history
+router.get('/:id/snapshots', ctrl.getSnapshots);
+router.post('/:id/snapshots', ctrl.createSnapshot);
+router.get('/:id/room-sessions', ctrl.getRoomSessions);
+
 module.exports = router;

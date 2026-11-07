@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const { Interview, User } = require('../models');
 const config = require('../config/env');
+const { initYjsSockets } = require('./yjsHandler');
 
 const MAX_CODE_LENGTH = 50000;
 const LANGUAGES = ['javascript', 'python', 'java', 'cpp'];
@@ -21,7 +22,7 @@ function getRoom(roomId) {
   return room;
 }
 
-function initSockets(server) {
+function initLegacySockets(server) {
   const io = new Server(server, {
     cors: {
       origin: config.clientUrl,
@@ -157,4 +158,11 @@ function initSockets(server) {
   return io;
 }
 
-module.exports = { initSockets };
+function initSockets(server) {
+  if (config.collab?.engine === 'legacy') {
+    return initLegacySockets(server);
+  }
+  return initYjsSockets(server);
+}
+
+module.exports = { initSockets, initLegacySockets, initYjsSockets };

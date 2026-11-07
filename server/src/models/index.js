@@ -20,6 +20,8 @@ const CandidateSkill = require('./CandidateSkill');
 const Evaluation = require('./Evaluation');
 const EvaluationOverride = require('./EvaluationOverride');
 const InterviewReport = require('./InterviewReport');
+const CodeSnapshot = require('./CodeSnapshot');
+const RoomSession = require('./RoomSession');
 
 User.hasMany(Interview, { as: 'interviewsGiven', foreignKey: 'interviewerId' });
 User.hasMany(Interview, { as: 'interviewsTaken', foreignKey: 'candidateId' });
@@ -108,6 +110,17 @@ InterviewReport.belongsTo(InterviewSession, { foreignKey: 'sessionId', as: 'sess
 User.hasMany(InterviewReport, { foreignKey: 'candidateId', as: 'reports', onDelete: 'CASCADE' });
 InterviewReport.belongsTo(User, { foreignKey: 'candidateId', as: 'candidate' });
 
+// Phase 8: Yjs Collaborative Editor & Snapshots associations
+Interview.hasMany(CodeSnapshot, { foreignKey: 'interviewId', as: 'snapshots', onDelete: 'SET NULL' });
+CodeSnapshot.belongsTo(Interview, { foreignKey: 'interviewId', as: 'interview' });
+CodeSnapshot.belongsTo(User, { foreignKey: 'createdById', as: 'creator' });
+
+Interview.hasMany(RoomSession, { foreignKey: 'interviewId', as: 'roomSessions', onDelete: 'SET NULL' });
+RoomSession.belongsTo(Interview, { foreignKey: 'interviewId', as: 'interview' });
+
+User.hasMany(RoomSession, { foreignKey: 'userId', as: 'roomSessions', onDelete: 'CASCADE' });
+RoomSession.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 module.exports = {
   User,
   Interview,
@@ -131,4 +144,6 @@ module.exports = {
   Evaluation,
   EvaluationOverride,
   InterviewReport,
+  CodeSnapshot,
+  RoomSession,
 };
