@@ -7,8 +7,10 @@ const withUsers = [
   { model: User, as: 'candidate', attributes: ['id', 'name', 'email'] },
 ];
 
-// Sirf wahi interview milegi jisme user participant hai.
-// Doosre ke liye 404 dete hain, taaki pata na chale ki interview exist karti hai.
+/**
+ * Retrieves interview only if the requesting user is an active participant (interviewer or candidate).
+ * Returns null if not found or unauthorized to prevent resource enumeration.
+ */
 const findMine = (id, userId) =>
   Interview.findOne({
     where: {
@@ -26,7 +28,10 @@ exports.create = async (req, res, next) => {
       where: { email: candidateEmail, role: 'candidate' },
     });
     if (!candidate) {
-      return res.status(404).json({ message: 'Candidate not found' });
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Candidate not found' },
+        message: 'Candidate not found',
+      });
     }
 
     const endAt = addMinutes(scheduledAt, durationMinutes);
@@ -36,7 +41,10 @@ exports.create = async (req, res, next) => {
       end: endAt,
     });
     if (clash) {
-      return res.status(409).json({ message: 'Time slot clashes with another interview' });
+      return res.status(409).json({
+        error: { code: 'CONFLICT', message: 'Time slot clashes with another interview' },
+        message: 'Time slot clashes with another interview',
+      });
     }
 
     const interview = await Interview.create({
@@ -81,7 +89,10 @@ exports.getOne = async (req, res, next) => {
   try {
     const interview = await findMine(req.params.id, req.user.id);
     if (!interview) {
-      return res.status(404).json({ message: 'Interview not found' });
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
     }
     res.json({ interview });
   } catch (err) {
@@ -93,10 +104,16 @@ exports.update = async (req, res, next) => {
   try {
     const interview = await findMine(req.params.id, req.user.id);
     if (!interview || interview.interviewerId !== req.user.id) {
-      return res.status(404).json({ message: 'Interview not found' });
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
     }
     if (interview.status !== 'scheduled') {
-      return res.status(409).json({ message: 'Only scheduled interviews can be edited' });
+      return res.status(409).json({
+        error: { code: 'CONFLICT', message: 'Only scheduled interviews can be edited' },
+        message: 'Only scheduled interviews can be edited',
+      });
     }
 
     const title = req.body.title ?? interview.title;
@@ -108,10 +125,13 @@ exports.update = async (req, res, next) => {
       userIds: [interview.interviewerId, interview.candidateId],
       start: scheduledAt,
       end: endAt,
-      excludeId: interview.id, // khud se clash nahi gina jayega
+      excludeId: interview.id, // Exclude current interview from conflict calculation
     });
     if (clash) {
-      return res.status(409).json({ message: 'Time slot clashes with another interview' });
+      return res.status(409).json({
+        error: { code: 'CONFLICT', message: 'Time slot clashes with another interview' },
+        message: 'Time slot clashes with another interview',
+      });
     }
 
     await interview.update({ title, scheduledAt, durationMinutes, endAt });
@@ -127,17 +147,27 @@ exports.updateStatus = async (req, res, next) => {
 
     const interview = await findMine(req.params.id, req.user.id);
     if (!interview) {
-      return res.status(404).json({ message: 'Interview not found' });
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Interview not found' },
+        message: 'Interview not found',
+      });
     }
 
-    // Candidate sirf cancel kar sakta hai, start/complete interviewer karega
+    // Only interviewers may advance or complete sessions; candidates may only cancel
     const isInterviewer = interview.interviewerId === req.user.id;
     if (!isInterviewer && status !== 'cancelled') {
-      return res.status(403).json({ message: 'Only the interviewer can do this' });
+      return res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'Only the interviewer can do this' },
+        message: 'Only the interviewer can do this',
+      });
     }
 
     if (!TRANSITIONS[interview.status].includes(status)) {
       return res.status(409).json({
+        error: {
+          code: 'INVALID_TRANSITION',
+          message: `Cannot change status from ${interview.status} to ${status}`,
+        },
         message: `Cannot change status from ${interview.status} to ${status}`,
       });
     }

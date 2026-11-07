@@ -6,7 +6,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Page reload par cookie se session wapas lao
+  // Restore session from httpOnly refresh cookie on initial application load
   useEffect(() => {
     let active = true;
     (async () => {

@@ -10,11 +10,11 @@ export function createSocket() {
 
   const socket = io(SOCKET_URL, {
     autoConnect: false,
-    // Har connect aur reconnect par taaza token jata hai
+    // Pass latest in-memory access token on connection and reconnection attempts
     auth: (cb) => cb({ token: getAccessToken() }),
   });
 
-  // Token expire ho gaya ho to refresh karke dobara connect karo
+  // Handle token expiration errors by attempting a token refresh and reconnecting
   socket.on('connect_error', async (err) => {
     const tokenProblem =
       err.message === 'Invalid or expired token' || err.message === 'Access token missing';
@@ -24,7 +24,7 @@ export function createSocket() {
         await refreshAccessToken();
         socket.connect();
       } catch {
-        // refresh bhi fail hua, user ko login page par jana padega
+        // If refresh fails, user session has expired and authentication is required
       }
     }
   });

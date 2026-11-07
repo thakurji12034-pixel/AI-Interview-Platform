@@ -3,7 +3,9 @@ const { Interview } = require('../models');
 
 const ACTIVE = ['scheduled', 'in_progress'];
 
-// Kaunse status se kaunse status par ja sakte hain (state machine)
+/**
+ * State machine definition for valid interview status transitions.
+ */
 const TRANSITIONS = {
   scheduled: ['in_progress', 'cancelled'],
   in_progress: ['completed'],
@@ -14,7 +16,10 @@ const TRANSITIONS = {
 const addMinutes = (date, minutes) =>
   new Date(new Date(date).getTime() + minutes * 60000);
 
-// Do time ranges overlap karti hain agar: purani.start < nayi.end AND purani.end > nayi.start
+/**
+ * Checks for overlapping interview slots.
+ * Two time ranges overlap if: existing.start < new.end AND existing.end > new.start
+ */
 async function findClash({ userIds, start, end, excludeId }) {
   const where = {
     status: { [Op.in]: ACTIVE },

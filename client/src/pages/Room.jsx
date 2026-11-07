@@ -12,7 +12,7 @@ const LANGUAGES = [
   { id: 'cpp', label: 'C++' },
 ];
 
-const SEND_DELAY_MS = 150; // typing rukne ke 150ms baad code bhejo (debounce)
+const SEND_DELAY_MS = 150; // Debounce delay before transmitting code updates
 
 export default function Room() {
   const { roomId } = useParams();
@@ -29,14 +29,14 @@ export default function Room() {
   const [interview, setInterview] = useState(null);
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('javascript');
-  const [online, setOnline] = useState([]); // online users ki ids
+  const [online, setOnline] = useState([]); // Array of connected participant user IDs
   const [typing, setTyping] = useState(false);
 
   useEffect(() => {
     const socket = createSocket();
     socketRef.current = socket;
 
-    // Connect aur reconnect, dono par room dobara join karna padta hai
+    // Both initial connection and reconnections require joining the room
     const join = () => {
       socket.emit('room:join', { roomId }, (res) => {
         if (!res?.ok) {
@@ -87,7 +87,7 @@ export default function Room() {
   }, [roomId]);
 
   const onCodeChange = (value = '') => {
-    if (value === codeRef.current) return; // doosre se aaya update dobara wapas nahi bhejna
+    if (value === codeRef.current) return; // Do not re-emit updates received from peer
     codeRef.current = value;
     setCode(value);
 
@@ -96,7 +96,7 @@ export default function Room() {
       socketRef.current?.emit('code:change', { roomId, code: codeRef.current });
     }, SEND_DELAY_MS);
 
-    // Typing indicator zyada se zyada 1 second me ek baar
+    // Throttle typing indicator emissions to maximum once per second
     const now = Date.now();
     if (now - lastTypingSent.current > 1000) {
       lastTypingSent.current = now;

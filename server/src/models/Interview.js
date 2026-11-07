@@ -10,7 +10,7 @@ const Interview = sequelize.define(
     title: { type: DataTypes.STRING(150), allowNull: false },
     scheduledAt: { type: DataTypes.DATE, allowNull: false },
     durationMinutes: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 60 },
-    endAt: { type: DataTypes.DATE, allowNull: false }, // clash check aasan banane ke liye
+    endAt: { type: DataTypes.DATE, allowNull: false }, // Calculated session end timestamp to optimize clash detection
     status: {
       type: DataTypes.ENUM('scheduled', 'in_progress', 'completed', 'cancelled'),
       allowNull: false,
@@ -19,7 +19,7 @@ const Interview = sequelize.define(
     roomId: {
       type: DataTypes.UUID,
       allowNull: false,
-      defaultValue: DataTypes.UUIDV4, // Socket.io coding room isi ID se banega
+      defaultValue: DataTypes.UUIDV4, // Unique identifier used for collaborative coding room routing
     },
   },
   { tableName: 'interviews', timestamps: true }

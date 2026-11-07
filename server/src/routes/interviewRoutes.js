@@ -9,7 +9,8 @@ const {
 } = require('../validators/interviewValidator');
 const ctrl = require('../controllers/interviewController');
 
-router.use(auth); // is file ke saare routes login mange
+// All interview endpoints require an authenticated user
+router.use(auth);
 
 router.post('/', authorize('interviewer'), validate(createSchema), ctrl.create);
 router.get('/', ctrl.list);

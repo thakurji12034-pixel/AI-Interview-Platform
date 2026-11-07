@@ -18,7 +18,7 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: 'candidate',
     },
-    refreshToken: { type: DataTypes.TEXT, allowNull: true }, // refresh wale step me use hoga
+    refreshToken: { type: DataTypes.TEXT, allowNull: true }, // Stores SHA-256 hash of active refresh token
   },
   { tableName: 'users', timestamps: true }
 );

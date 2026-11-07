@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const config = require('./config/env');
+const { httpLogger } = require('./utils/logger');
+const sequelize = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
 const errorHandler = require('./middleware/errorHandler');
@@ -14,18 +16,37 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true, // cookie bhejne ke liye zaroori
+    origin: config.clientUrl,
+    credentials: true, // Enables cookie transmission across origins when applicable
   })
 );
 app.use(express.json());
 app.use(cookieParser());
-app.use(morgan('dev'));
+app.use(httpLogger);
 
-app.get('/api/health', (req, res) => {
+// Health check endpoints
+app.get('/health/live', (_req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+
+app.get('/health/ready', async (_req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.json({ status: 'ready', database: 'connected' });
+  } catch (err) {
+    res.status(503).json({ status: 'unhealthy', database: 'disconnected', error: err.message });
+  }
+});
+
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Versioned API routes (/api/v1)
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/interviews', interviewRoutes);
+
+// Temporary backward compatibility aliases (/api/*)
 app.use('/api/auth', authRoutes);
 app.use('/api/interviews', interviewRoutes);
 

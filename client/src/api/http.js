@@ -2,9 +2,9 @@ import axios from 'axios';
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+  (import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1');
 
-// Access token sirf memory me rakhte hain (localStorage me nahi, taaki XSS se chori na ho)
+// Store access token in-memory only (never in localStorage to mitigate XSS risks)
 let accessToken = null;
 export const setAccessToken = (token) => {
   accessToken = token;
@@ -18,9 +18,8 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
-// Ek samay me sirf ek refresh chale.
-// React StrictMode me effect do baar chalta hai, aur refresh token rotate hota hai,
-// to do refresh ek saath bhejne par doosra fail ho jata.
+// Ensure only a single refresh operation runs concurrently.
+// Prevents race conditions during React StrictMode duplicate mounting and token rotation.
 let refreshPromise = null;
 export function refreshAccessToken() {
   if (!refreshPromise) {
@@ -39,7 +38,7 @@ export function refreshAccessToken() {
 
 const NO_RETRY = ['/auth/login', '/auth/register', '/auth/refresh'];
 
-// Access token expire ho jaye (401) to ek baar refresh karke request dobara bhejo
+// If access token expires (401), attempt a single refresh and retry the failed request
 http.interceptors.response.use(
   (res) => res,
   async (error) => {

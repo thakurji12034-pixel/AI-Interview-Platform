@@ -60,7 +60,7 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Notice 4 second baad apne aap hat jaye
+  // Automatically dismiss notification after 4 seconds
   useEffect(() => {
     if (!notice) return undefined;
     const timer = setTimeout(() => setNotice(null), 4000);

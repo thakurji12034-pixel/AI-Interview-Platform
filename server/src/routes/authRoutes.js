@@ -17,7 +17,13 @@ const authLimiter = rateLimit({
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   statusCode: 429,
-  message: { message: 'Too many attempts, please try again later' },
+  message: {
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Too many attempts, please try again later',
+    },
+    message: 'Too many attempts, please try again later',
+  },
   handler: (req, res, _next, options) => {
     res.status(options.statusCode).json(options.message);
   },
@@ -29,7 +35,13 @@ const generalLimiter = rateLimit({
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   statusCode: 429,
-  message: { message: 'Too many attempts, please try again later' },
+  message: {
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Too many attempts, please try again later',
+    },
+    message: 'Too many attempts, please try again later',
+  },
   handler: (req, res, _next, options) => {
     res.status(options.statusCode).json(options.message);
   },
