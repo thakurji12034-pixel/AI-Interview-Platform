@@ -66,3 +66,8 @@ Every dependency added to `server/` or `client/` must be recorded here with:
 | `server/tests/socket.test.js` | ADD | 11 automated real-time Socket.io tests on ephemeral port covering auth, syncing, boundaries, and reconnection. | Test runner | Phase 1b |
 | `server/src/routes/authRoutes.js` | MODIFY | Skipped rate limiting during `NODE_ENV=test` to prevent test runner throttling. | Auth endpoints | Phase 1b |
 | `server/package.json` | MODIFY | Added Jest test runner script and devDependencies (`jest`, `supertest`). | Test execution | Phase 1b |
+| `server/src/config/migrator.js` | ADD | Umzug migration runner factory and default instance using Sequelize. | Migration scripts | Phase 1c |
+| `server/src/migrations/001_baseline_schema.js` | ADD | Idempotent baseline schema migration with unique roomId index and performance indexes. | Migration runner | Phase 1c |
+| `server/src/scripts/migrate.js` | ADD | CLI runner for applying, reverting, and inspecting migration status. | `server/package.json` | Phase 1c |
+| `server/src/scripts/testMigrationSafe.js` | ADD | Migration safety verification suite tested on restored pre-intelliprep backup copy. | Test / Verification | Phase 1c |
+| `server/package.json` | MODIFY | Added `db:migrate`, `db:migrate:undo`, and `db:migrate:status` npm scripts. | Developer CLI | Phase 1c |

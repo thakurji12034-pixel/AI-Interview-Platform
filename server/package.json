@@ -9,7 +9,10 @@
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "lint": "eslint .",
-    "user:create": "node src/scripts/createUser.js"
+    "user:create": "node src/scripts/createUser.js",
+    "db:migrate": "node src/scripts/migrate.js up",
+    "db:migrate:undo": "node src/scripts/migrate.js down",
+    "db:migrate:status": "node src/scripts/migrate.js status"
   },
   "keywords": [],
   "author": "Vandana Tanwar",
