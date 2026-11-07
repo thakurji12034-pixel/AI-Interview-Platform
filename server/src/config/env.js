@@ -1,4 +1,6 @@
 const Joi = require('joi');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 require('dotenv').config();
 
 const envSchema = Joi.object({
@@ -22,6 +24,9 @@ const envSchema = Joi.object({
   JUDGE0_ENDPOINT: Joi.string().default('http://localhost:2358'),
   JUDGE0_API_KEY: Joi.string().allow('').default(''),
   EXECUTION_PROVIDER: Joi.string().valid('mock', 'judge0').default('mock'),
+  GEMINI_API_KEY: Joi.string().allow('').default(''),
+  GEMINI_MODEL: Joi.string().default('gemini-2.5-flash'),
+  AI_MOCK_MODE: Joi.boolean().default(true),
 })
   .unknown(true);
 
@@ -72,6 +77,11 @@ module.exports = {
     provider: envVars.EXECUTION_PROVIDER,
     judge0Endpoint: envVars.JUDGE0_ENDPOINT,
     judge0ApiKey: envVars.JUDGE0_API_KEY,
+  },
+  ai: {
+    apiKey: envVars.GEMINI_API_KEY,
+    model: envVars.GEMINI_MODEL,
+    mockMode: envVars.AI_MOCK_MODE,
   },
 };
 

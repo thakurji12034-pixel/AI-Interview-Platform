@@ -135,16 +135,24 @@ async function processAiEvaluation(job) {
 }
 
 async function processResumeParsing(job) {
-  logger.info({ jobId: job.id, candidateId: job.data.candidateId }, '[WORKER] Processing resume parsing job');
+  const { resumeId, candidateId } = job.data;
+  logger.info({ jobId: job.id, resumeId, candidateId }, '[WORKER] Processing resume parsing job');
   await job.updateProgress(30);
 
-  // Pluggable with PDF parsing & skill extraction implemented in Phase 6
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  if (resumeId) {
+    const { resumeService } = require('./services/resumeService');
+    await resumeService.processResumeParsing(resumeId);
+  } else {
+    // Fallback for generic mock test jobs
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
   await job.updateProgress(100);
 
   return {
     status: 'parsed',
-    candidateId: job.data.candidateId,
+    resumeId,
+    candidateId,
     parsedAt: new Date().toISOString(),
   };
 }

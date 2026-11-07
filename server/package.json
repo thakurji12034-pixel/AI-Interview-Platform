@@ -22,6 +22,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/genai": "^3.0.0",
     "bcryptjs": "^3.0.3",
     "bullmq": "^6.7.1",
     "cookie-parser": "^1.4.7",
@@ -34,13 +35,15 @@
     "joi": "^18.3.1",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.12.1",
+    "multer": "^2.5.0",
     "mysql2": "^3.24.6",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
     "rate-limit-redis": "^6.0.2",
     "sequelize": "^6.37.8",
     "socket.io": "^4.8.4",
-    "umzug": "^3.8.3"
+    "umzug": "^3.8.3",
+    "unpdf": "^2.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

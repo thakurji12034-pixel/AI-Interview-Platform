@@ -11,6 +11,12 @@ const InterviewTemplate = require('./InterviewTemplate');
 const Assessment = require('./Assessment');
 const AssessmentQuestion = require('./AssessmentQuestion');
 const Submission = require('./Submission');
+const AiUsage = require('./AiUsage');
+const InterviewSession = require('./InterviewSession');
+const SessionQuestion = require('./SessionQuestion');
+const Answer = require('./Answer');
+const Resume = require('./Resume');
+const CandidateSkill = require('./CandidateSkill');
 
 User.hasMany(Interview, { as: 'interviewsGiven', foreignKey: 'interviewerId' });
 User.hasMany(Interview, { as: 'interviewsTaken', foreignKey: 'candidateId' });
@@ -59,6 +65,29 @@ Submission.belongsTo(Question, { as: 'question', foreignKey: 'questionId' });
 Assessment.hasMany(Submission, { as: 'submissions', foreignKey: 'assessmentId', onDelete: 'SET NULL' });
 Submission.belongsTo(Assessment, { as: 'assessment', foreignKey: 'assessmentId' });
 
+// Phase 6: AI Engine & Resume Intelligence associations
+User.hasMany(InterviewSession, { foreignKey: 'userId', as: 'sessions', onDelete: 'CASCADE' });
+InterviewSession.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+InterviewSession.belongsTo(User, { foreignKey: 'interviewerId', as: 'interviewer' });
+
+InterviewSession.hasMany(SessionQuestion, { foreignKey: 'sessionId', as: 'questions', onDelete: 'CASCADE' });
+SessionQuestion.belongsTo(InterviewSession, { foreignKey: 'sessionId', as: 'session' });
+SessionQuestion.belongsTo(Question, { foreignKey: 'questionId', as: 'baseQuestion' });
+
+SessionQuestion.hasMany(Answer, { foreignKey: 'sessionQuestionId', as: 'answers', onDelete: 'CASCADE' });
+Answer.belongsTo(SessionQuestion, { foreignKey: 'sessionQuestionId', as: 'question' });
+Answer.belongsTo(InterviewSession, { foreignKey: 'sessionId', as: 'session' });
+Answer.belongsTo(User, { foreignKey: 'candidateId', as: 'candidate' });
+
+User.hasMany(Resume, { foreignKey: 'userId', as: 'resumes', onDelete: 'CASCADE' });
+Resume.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+User.hasMany(CandidateSkill, { foreignKey: 'userId', as: 'skills', onDelete: 'CASCADE' });
+CandidateSkill.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+User.hasMany(AiUsage, { foreignKey: 'userId', as: 'aiUsages', onDelete: 'SET NULL' });
+AiUsage.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 module.exports = {
   User,
   Interview,
@@ -73,4 +102,10 @@ module.exports = {
   Assessment,
   AssessmentQuestion,
   Submission,
+  AiUsage,
+  InterviewSession,
+  SessionQuestion,
+  Answer,
+  Resume,
+  CandidateSkill,
 };

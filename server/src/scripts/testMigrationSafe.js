@@ -5,7 +5,7 @@ const { createMigrator } = require('../config/migrator');
 const config = require('../config/env');
 
 const TEST_DB = 'interview_platform_migrate_test';
-const BACKUP_PATH = process.argv[2] || 'D:\\db_backups\\interview_platform_pre_phase_4.sql';
+const BACKUP_PATH = process.argv[2] || 'D:\\db_backups\\interview_platform_pre_phase_6.sql';
 
 const log = (msg) => console.log(`[MIGRATION-TEST] ${msg}`);
 
@@ -69,13 +69,19 @@ async function run() {
     'assessments',
     'assessment_questions',
     'submissions',
+    'ai_usage',
+    'interview_sessions',
+    'session_questions',
+    'answers',
+    'resumes',
+    'candidate_skills',
   ];
   for (const t of targetTables) {
     if (!tableNames.includes(t)) {
       throw new Error(`FAILED: Expected table ${t} not found after UP!`);
     }
   }
-  log('VERIFIED: All target tables (including submissions) created successfully.');
+  log('VERIFIED: All target tables (including Phase 6 tables) created successfully.');
 
   // 5. Test Idempotency: Running UP a second time
   log('Testing Idempotency: Running migration UP a second time...');
@@ -94,10 +100,10 @@ async function run() {
   const [tablesAfterDown] = await testSequelize.query('SHOW TABLES');
   const tableNamesAfterDown = tablesAfterDown.map((r) => Object.values(r)[0]);
   log(`Tables after DOWN: ${tableNamesAfterDown.join(', ')}`);
-  if (tableNamesAfterDown.includes('submissions')) {
-    throw new Error('FAILED: Table submissions was NOT dropped during down!');
+  if (tableNamesAfterDown.includes('candidate_skills') || tableNamesAfterDown.includes('interview_sessions')) {
+    throw new Error('FAILED: Phase 6 tables were NOT dropped during down!');
   }
-  log('VERIFIED: DOWN removed submissions table while preserving baseline data.');
+  log('VERIFIED: DOWN removed Phase 6 tables while preserving baseline data.');
 
   // 7. Re-apply UP to verify clean re-application
   log('Re-applying migration UP after rollback...');
