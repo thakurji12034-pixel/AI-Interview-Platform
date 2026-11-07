@@ -128,3 +128,35 @@ Every dependency added to `server/` or `client/` must be recorded here with:
 | `client/src/pages/Dashboard.jsx` | MODIFY | Converted to role-based dispatcher rendering Candidate, Interviewer, or Admin dashboard. | App router | Phase 2c |
 | `docs/verification/phase-2.md` | ADD | Comprehensive Phase 2 verification report with exact execution output and test counts. | Documentation | Phase 2d |
 
+---
+
+## Phase 3: Redis & Background Job Infrastructure
+
+### Dependency Additions (Justification Table)
+
+| Package | Version | Purpose | License | Maintenance Status | Audit Result |
+|---|---|---|---|---|---|
+| `ioredis` | ^5.6.x | Robust, full-featured Redis client supporting auto-reconnect, failover, and pipeline batching. | MIT | Actively maintained, >15M weekly downloads | 0 vulnerabilities |
+| `bullmq` | ^5.41.x | Enterprise distributed message queue for asynchronous job execution, exponential backoff, and progress tracking. | MIT | Actively maintained by Taskforce.sh | 0 vulnerabilities |
+| `rate-limit-redis` | ^4.2.x | Official Redis store for `express-rate-limit` enabling atomic distributed rate limiting across processes. | MIT | Actively maintained | 0 vulnerabilities |
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/config/env.js` | MODIFY | Added Redis configuration (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_MOCK`, `REDIS_ENABLED`). | `server/src/config/redis.js` | Phase 3a |
+| `server/.env.example` | MODIFY | Added documented Redis configuration variables for local and production deployment. | Configuration | Phase 3a |
+| `.env.example` | MODIFY | Added production Docker Redis environment definitions. | Compose setup | Phase 3a |
+| `server/src/config/redis.js` | ADD | Redis connection manager with `ioredis`, fail-fast non-blocking offline queues, health checks, and in-memory mock fallback. | Cache, worker, queues, server | Phase 3a |
+| `server/src/services/cacheService.js` | ADD | Application cache service with explicit TTLs, JSON serialization, and pattern-based key invalidation. | Future services & controllers | Phase 3a |
+| `server/src/jobs/queueManager.js` | ADD | Central BullMQ queue registry (`code-execution`, `ai-evaluation`, `resume-parsing`) with standardized retry backoff and mock queue adapter. | Worker & future controllers | Phase 3a |
+| `server/src/worker.js` | ADD | Dedicated background job worker runner with modular processors and graceful shutdown. | `server/package.json`, Docker Compose | Phase 3a |
+| `server/src/middleware/rateLimiter.js` | ADD | Distributed rate limiter with atomic `rate-limit-redis` store and automatic memory store fallback. | `server/src/routes/authRoutes.js` | Phase 3a |
+| `server/src/routes/authRoutes.js` | MODIFY | Switched inline rate limiters to centralized `rateLimiter.js`. | Auth endpoints | Phase 3a |
+| `server/src/app.js` | MODIFY | Upgraded `/health/ready` probe to evaluate both MySQL and Redis health simultaneously. | Health probes | Phase 3a |
+| `server/src/server.js` | MODIFY | Added Redis and Queue cleanup to graceful shutdown handler. | Process management | Phase 3a |
+| `docker-compose.yml` | MODIFY | Added `redis:7-alpine` service, `worker` service, and `redis_data` volume. | Container orchestration | Phase 3a |
+| `server/tests/redis.test.js` | ADD | 10 automated integration tests covering Redis client, health probes, cache service, and BullMQ queue processing. | Test runner | Phase 3a |
+| `docs/verification/phase-3.md` | ADD | Comprehensive Phase 3 verification report with exact execution output and test counts. | Documentation | Phase 3b |
+
+
