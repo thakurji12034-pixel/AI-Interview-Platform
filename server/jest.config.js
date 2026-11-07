@@ -4,5 +4,7 @@ module.exports = {
   verbose: true,
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   testTimeout: 20000,
+  cacheDirectory: '<rootDir>/.jest-cache',
 };
+
 
