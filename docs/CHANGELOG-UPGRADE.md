@@ -272,6 +272,30 @@ No external production dependencies added in Phase 5 (implemented using standard
 | `server/tests/resume.test.js` | ADD | 7 automated integration tests verifying %PDF- magic bytes, upload validation, background extraction, taxonomy normalization, job matching, deletion privacy, and IDOR protection. | Test runner | Phase 6a |
 | `docs/verification/phase-6.md` | ADD | Comprehensive Phase 6 verification report with exact execution output and test counts. | Documentation | Phase 6b |
 
+---
+
+## Phase 7: AI Answer Evaluation & Reports
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/migrations/006_evaluations_and_reports.js` | ADD | Schema migration creating `evaluations`, `evaluation_overrides`, and `interview_reports` tables with indexes. | Umzug migrator | Phase 7a |
+| `server/src/models/Evaluation.js` | ADD | Sequelize model storing AI rubric evaluations across 5 dimensions, raw JSON, and advisory disclaimers. | Models index | Phase 7a |
+| `server/src/models/EvaluationOverride.js` | ADD | Sequelize model storing human interviewer evaluation overrides and notes with audit preservation. | Models index | Phase 7a |
+| `server/src/models/InterviewReport.js` | ADD | Sequelize model storing holistic interview reports synthesizing AI scores with verified code execution facts and telemetry timings. | Models index | Phase 7a |
+| `server/src/models/index.js` | MODIFY | Linked Evaluation, EvaluationOverride, and InterviewReport into relational associations. | Application models | Phase 7a |
+| `server/src/ai/prompts/answerEvaluationPrompt.js` | ADD | Versioned answer evaluation prompt template (v1.0) defining 5 rubric dimensions and score constraints. | AI manager | Phase 7a |
+| `server/src/services/evaluationService.js` | ADD | Evaluation generation with server-authoritative weighting, advisory disclaimer enforcement, human override management, and verified telemetry report synthesis. | Controllers, worker | Phase 7a |
+| `server/src/controllers/evaluationController.js` | ADD | REST controller handling async evaluation triggers, retrieval, and interviewer overrides. | Evaluation routes | Phase 7a |
+| `server/src/routes/evaluationRoutes.js` | ADD | Express router mounted at `/api/v1/evaluations` with RBAC permissions. | `server/src/app.js` | Phase 7a |
+| `server/src/controllers/reportController.js` | ADD | REST controller handling interview report generation and session report retrieval. | Report routes | Phase 7a |
+| `server/src/routes/reportRoutes.js` | ADD | Express router mounted at `/api/v1/reports`. | `server/src/app.js` | Phase 7a |
+| `server/src/worker.js` | MODIFY | Added `processAiEvaluation` queue consumer calling `evaluationService.processEvaluationJob`. | Worker runner | Phase 7a |
+| `server/tests/evaluation.test.js` | ADD | 8 automated integration tests verifying server-authoritative score weighting, async evaluations, human overrides, disclaimer presence, telemetry synthesis, and IDOR protection. | Test runner | Phase 7a |
+| `docs/verification/phase-7.md` | ADD | Comprehensive Phase 7 verification report with exact execution output and test counts. | Documentation | Phase 7b |
+
+
 
 
 
