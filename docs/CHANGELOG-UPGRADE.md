@@ -333,3 +333,33 @@ No external production dependencies added in Phase 5 (implemented using standard
 | `client/vite.config.js` | MODIFY | Added module alias resolving Monaco internal paths for Rolldown bundler compatibility. | Build pipeline | Phase 8a |
 | `server/tests/collab.test.js` | ADD | 13 automated integration tests verifying handshake auth, Yjs sync, CRDT convergence, language sync, observer restrictions, debounced snapshots, and room session telemetry. | Test runner | Phase 8a |
 | `docs/verification/phase-8.md` | ADD | Comprehensive Phase 8 verification report with exact execution output and test counts. | Documentation | Phase 8b |
+
+---
+
+## Phase 9: Role-Scoped Analytics & Performance Visualizations
+
+### Dependency Additions (Justification Table)
+
+| Package | Version | Purpose | License | Maintenance Status | Audit Result |
+|---|---|---|---|---|---|
+| `recharts` (client) | ^2.15.x | Accessible React visualization library for area, bar, and metric charts. | MIT | Actively maintained, >2M weekly downloads | 0 high/critical vulnerabilities |
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/services/analyticsService.js` | ADD | Role-scoped aggregate metrics service for candidate score histories, interviewer rubric distributions, admin user velocities, and Redis caching. | `server/src/controllers/analyticsController.js` | Phase 9a |
+| `server/src/controllers/analyticsController.js` | ADD | Controller handling authorization and parameter dispatch for candidate, interviewer, and admin analytics. | `server/src/routes/analyticsRoutes.js` | Phase 9a |
+| `server/src/routes/analyticsRoutes.js` | ADD | REST API routes mounted under `/api/v1/analytics` and `/api/analytics`. | `server/src/app.js` | Phase 9a |
+| `server/src/app.js` | MODIFY | Mounted analytics routes into Express application. | Server entry | Phase 9a |
+| `client/src/components/analytics/ScoreProgressionChart.jsx` | ADD | Accessible AreaChart displaying candidate historical scores over time with data table fallback. | Candidate dashboard | Phase 9a |
+| `client/src/components/analytics/SkillRadarChart.jsx` | ADD | Accessible horizontal bar chart displaying assessed skills and verification status with data table fallback. | Candidate dashboard | Phase 9a |
+| `client/src/components/analytics/ScoreDistributionChart.jsx` | ADD | Accessible histogram bar chart displaying candidate score tiers for interviewers with data table fallback. | Interviewer workspace | Phase 9a |
+| `client/src/components/analytics/RubricAveragesChart.jsx` | ADD | Accessible horizontal bar chart displaying 5-dimension rubric performance averages with data table fallback. | Interviewer workspace | Phase 9a |
+| `client/src/components/analytics/PlatformThroughputChart.jsx` | ADD | Accessible dashboard charts displaying user population composition, platform throughput, and AI token consumption. | Admin dashboard | Phase 9a |
+| `client/src/features/dashboard/CandidateDashboard.jsx` | MODIFY | Integrated visual analytics (`ScoreProgressionChart` and `SkillRadarChart`) with `/analytics/candidate`. | Candidate portal | Phase 9a |
+| `client/src/features/dashboard/InterviewerDashboard.jsx` | MODIFY | Integrated visual analytics (`ScoreDistributionChart` and `RubricAveragesChart`) with `/analytics/interviewer`. | Interviewer portal | Phase 9a |
+| `client/src/features/admin/AdminDashboard.jsx` | MODIFY | Integrated platform metrics (`PlatformThroughputChart`) with `/analytics/admin`. | Admin portal | Phase 9a |
+| `server/tests/analytics.test.js` | ADD | 10 automated integration tests verifying candidate, interviewer, and admin telemetry, Redis caching, date range filters, and RBAC forbidden gates. | Test runner | Phase 9a |
+| `docs/verification/phase-9.md` | ADD | Comprehensive Phase 9 verification report with exact execution output and test counts. | Documentation | Phase 9b |
+| `docs/PROGRESS.md` | MODIFY | Updated Phase 9 status to Done (124/124 tests). | Tracker | Phase 9b |
