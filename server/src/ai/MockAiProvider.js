@@ -144,6 +144,31 @@ class MockAiProvider extends AiProvider {
       };
     }
 
+    // 7. Answer Evaluation
+    if (purpose === 'answer_evaluation' || prompt.includes('UNTRUSTED_CANDIDATE_RESPONSE')) {
+      if (prompt.includes('INJECT_MALFORMED_OUTPUT')) {
+        return {
+          corruptedField: true,
+        };
+      }
+
+      return {
+        technicalCorrectness: 88,
+        relevance: 90,
+        explanationQuality: 82,
+        problemSolving: 85,
+        communicationClarity: 85,
+        strengths: [
+          'Sound algorithmic structure and clear complexity analysis',
+          'Accurate identification of primary performance bottlenecks',
+        ],
+        weaknesses: [
+          'Could elaborate on concurrency and distributed lock contention edge cases',
+        ],
+        feedback: 'Overall strong performance with solid technical rationale.',
+      };
+    }
+
     // Default fallback structured response
     return {
       status: 'ok',

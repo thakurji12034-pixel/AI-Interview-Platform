@@ -17,6 +17,9 @@ const SessionQuestion = require('./SessionQuestion');
 const Answer = require('./Answer');
 const Resume = require('./Resume');
 const CandidateSkill = require('./CandidateSkill');
+const Evaluation = require('./Evaluation');
+const EvaluationOverride = require('./EvaluationOverride');
+const InterviewReport = require('./InterviewReport');
 
 User.hasMany(Interview, { as: 'interviewsGiven', foreignKey: 'interviewerId' });
 User.hasMany(Interview, { as: 'interviewsTaken', foreignKey: 'candidateId' });
@@ -88,6 +91,23 @@ CandidateSkill.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasMany(AiUsage, { foreignKey: 'userId', as: 'aiUsages', onDelete: 'SET NULL' });
 AiUsage.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+// Phase 7: AI Evaluations & Reports associations
+InterviewSession.hasMany(Evaluation, { foreignKey: 'sessionId', as: 'evaluations', onDelete: 'CASCADE' });
+Evaluation.belongsTo(InterviewSession, { foreignKey: 'sessionId', as: 'session' });
+
+Answer.hasOne(Evaluation, { foreignKey: 'answerId', as: 'evaluation', onDelete: 'CASCADE' });
+Evaluation.belongsTo(Answer, { foreignKey: 'answerId', as: 'answer' });
+
+Evaluation.hasMany(EvaluationOverride, { foreignKey: 'evaluationId', as: 'overrides', onDelete: 'CASCADE' });
+EvaluationOverride.belongsTo(Evaluation, { foreignKey: 'evaluationId', as: 'evaluation' });
+EvaluationOverride.belongsTo(User, { foreignKey: 'interviewerId', as: 'interviewer' });
+
+InterviewSession.hasOne(InterviewReport, { foreignKey: 'sessionId', as: 'report', onDelete: 'CASCADE' });
+InterviewReport.belongsTo(InterviewSession, { foreignKey: 'sessionId', as: 'session' });
+
+User.hasMany(InterviewReport, { foreignKey: 'candidateId', as: 'reports', onDelete: 'CASCADE' });
+InterviewReport.belongsTo(User, { foreignKey: 'candidateId', as: 'candidate' });
+
 module.exports = {
   User,
   Interview,
@@ -108,4 +128,7 @@ module.exports = {
   Answer,
   Resume,
   CandidateSkill,
+  Evaluation,
+  EvaluationOverride,
+  InterviewReport,
 };

@@ -120,16 +120,24 @@ async function processCodeExecution(job) {
 }
 
 async function processAiEvaluation(job) {
-  logger.info({ jobId: job.id, interviewId: job.data.interviewId }, '[WORKER] Processing AI evaluation job');
+  const { evaluationId, interviewId } = job.data;
+  logger.info({ jobId: job.id, evaluationId, interviewId }, '[WORKER] Processing AI evaluation job');
   await job.updateProgress(25);
 
-  // Pluggable with Gemini AI evaluation pipeline implemented in Phase 7
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  if (evaluationId) {
+    const { evaluationService } = require('./services/evaluationService');
+    await evaluationService.processAnswerEvaluation(evaluationId);
+  } else {
+    // Fallback for mock generic queue jobs
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
   await job.updateProgress(100);
 
   return {
-    status: 'evaluated',
-    interviewId: job.data.interviewId,
+    status: evaluationId ? 'completed' : 'evaluated',
+    evaluationId,
+    interviewId,
     evaluatedAt: new Date().toISOString(),
   };
 }
