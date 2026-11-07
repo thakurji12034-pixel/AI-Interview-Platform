@@ -28,6 +28,8 @@ const envSchema = Joi.object({
   GEMINI_MODEL: Joi.string().default('gemini-2.5-flash'),
   AI_MOCK_MODE: Joi.boolean().default(true),
   COLLAB_ENGINE: Joi.string().valid('legacy', 'yjs').default('yjs'),
+  ALLOW_MOCK_PROVIDERS: Joi.boolean().default(false),
+  ALLOW_INMEMORY_REDIS: Joi.boolean().default(false),
 })
   .unknown(true);
 
@@ -47,6 +49,16 @@ if (envVars.NODE_ENV === 'production' && envVars.ALLOW_DEV_INTERVIEWER_REGISTRAT
     '[SECURITY ERROR] ALLOW_DEV_INTERVIEWER_REGISTRATION must NOT be enabled in production environments.'
   );
   process.exit(1);
+}
+
+// In production, refuse to start with mock providers unless explicitly allowed
+if (envVars.NODE_ENV === 'production' && !envVars.ALLOW_MOCK_PROVIDERS) {
+  if (envVars.AI_MOCK_MODE || envVars.EXECUTION_PROVIDER === 'mock') {
+    console.error(
+      '[CONFIG ERROR] In production, AI_MOCK_MODE=true or EXECUTION_PROVIDER=mock is prohibited unless ALLOW_MOCK_PROVIDERS=true is set explicitly.'
+    );
+    process.exit(1);
+  }
 }
 
 module.exports = {
@@ -87,5 +99,7 @@ module.exports = {
   collab: {
     engine: envVars.COLLAB_ENGINE,
   },
+  allowMockProviders: envVars.ALLOW_MOCK_PROVIDERS,
+  allowInMemoryRedis: envVars.ALLOW_INMEMORY_REDIS,
 };
 

@@ -8,7 +8,8 @@ import { useAuth } from '../context/useAuth';
 import { createSocket } from '../api/socket';
 import http from '../api/http';
 import StatusBadge from '../components/StatusBadge';
-import { Camera, Clock, Eye, History, ShieldAlert } from 'lucide-react';
+import { Camera, Clock, Eye, History, Play, ShieldAlert } from 'lucide-react';
+import { RunCodePanel } from '../features/room/RunCodePanel';
 
 const LANGUAGES = [
   { id: 'javascript', label: 'JavaScript' },
@@ -39,6 +40,7 @@ export default function Room() {
 
   // Snapshot modal and history state
   const [showSnapshots, setShowSnapshots] = useState(false);
+  const [showRunPanel, setShowRunPanel] = useState(false);
   const [snapshots, setSnapshots] = useState([]);
   const [loadingSnapshots, setLoadingSnapshots] = useState(false);
   const [savingSnapshot, setSavingSnapshot] = useState(false);
@@ -300,6 +302,24 @@ export default function Room() {
             ))}
           </select>
 
+          <button
+            type="button"
+            onClick={() => {
+              setShowRunPanel(!showRunPanel);
+              if (showSnapshots) setShowSnapshots(false);
+            }}
+            disabled={isObserver}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold cursor-pointer transition ${
+              showRunPanel
+                ? 'border-indigo-600 bg-indigo-600 text-white shadow-xs'
+                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+            } disabled:opacity-50`}
+            title="Run code against test cases"
+          >
+            <Play className="h-3.5 w-3.5 fill-current" />
+            Run Code
+          </button>
+
           {canManageSnapshots && (
             <div className="flex items-center gap-2">
               <button
@@ -357,6 +377,16 @@ export default function Room() {
             loading={<div className="p-4 text-slate-400">Loading collaborative editor...</div>}
           />
         </div>
+
+        {/* Run Code Side Panel */}
+        {showRunPanel && (
+          <RunCodePanel
+            getCode={() => ytextRef.current?.toString() || ''}
+            language={language}
+            isObserver={isObserver}
+            onClose={() => setShowRunPanel(false)}
+          />
+        )}
 
         {/* Snapshot History Side Drawer */}
         {showSnapshots && (

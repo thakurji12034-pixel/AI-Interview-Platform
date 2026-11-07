@@ -4,20 +4,41 @@ import { AppShell } from '../components/layout/AppShell';
 import { CandidateDashboard } from '../features/dashboard/CandidateDashboard';
 import { InterviewerDashboard } from '../features/dashboard/InterviewerDashboard';
 import { AdminDashboard } from '../features/admin/AdminDashboard';
+import { QuestionManager } from '../features/questions/QuestionManager';
+import ReportsPage from './ReportsPage';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [adminTab, setAdminTab] = useState('overview');
+  const [currentTab, setCurrentTab] = useState(() => (user?.role === 'admin' ? 'overview' : 'interviews'));
+
+  const renderContent = () => {
+    if (currentTab === 'questions') {
+      return <QuestionManager />;
+    }
+
+    if (currentTab === 'reports') {
+      return <ReportsPage />;
+    }
+
+    if (user?.role === 'admin') {
+      return <AdminDashboard activeTab={currentTab} />;
+    }
+
+    if (user?.role === 'interviewer') {
+      return <InterviewerDashboard />;
+    }
+
+    return <CandidateDashboard />;
+  };
+
+  // If reports tab is active, ReportsPage provides its own AppShell wrapper, so render directly or handle cleanly
+  if (currentTab === 'reports') {
+    return <ReportsPage />;
+  }
 
   return (
-    <AppShell activeTab={adminTab} onTabChange={setAdminTab}>
-      {user?.role === 'admin' ? (
-        <AdminDashboard activeTab={adminTab} />
-      ) : user?.role === 'interviewer' ? (
-        <InterviewerDashboard />
-      ) : (
-        <CandidateDashboard />
-      )}
+    <AppShell activeTab={currentTab} onTabChange={setCurrentTab}>
+      {renderContent()}
     </AppShell>
   );
 }

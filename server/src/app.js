@@ -16,8 +16,10 @@ const sessionRoutes = require('./routes/sessionRoutes');
 const evaluationRoutes = require('./routes/evaluationRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const systemRoutes = require('./routes/systemRoutes');
+const templateRoutes = require('./routes/templateRoutes');
 const errorHandler = require('./middleware/errorHandler');
-const { isRedisHealthy } = require('./config/redis');
+const { isRedisHealthy, getRedisClient } = require('./config/redis');
 
 const app = express();
 
@@ -44,9 +46,23 @@ app.get('/health/ready', async (_req, res) => {
     .authenticate()
     .then(() => true)
     .catch(() => false);
+
+  const client = getRedisClient();
+  const isInMemoryRedis = Boolean(client && client.isMock);
   const redisHealthy = await isRedisHealthy();
 
-  const isReady = dbHealthy && redisHealthy;
+  let redisStatus = 'disconnected';
+  if (isInMemoryRedis) {
+    redisStatus = 'in-memory-fallback';
+  } else if (redisHealthy) {
+    redisStatus = 'connected';
+  }
+
+  let isReady = dbHealthy && redisHealthy;
+  if (config.env === 'production' && isInMemoryRedis && !config.allowInMemoryRedis) {
+    isReady = false;
+  }
+
   const status = isReady ? 'ready' : 'unhealthy';
   const statusCode = isReady ? 200 : 503;
 
@@ -54,7 +70,7 @@ app.get('/health/ready', async (_req, res) => {
     status,
     checks: {
       database: dbHealthy ? 'connected' : 'disconnected',
-      redis: redisHealthy ? 'connected' : 'disconnected',
+      redis: redisStatus,
     },
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
@@ -77,6 +93,8 @@ app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/evaluations', evaluationRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/system', systemRoutes);
+app.use('/api/v1/templates', templateRoutes);
 
 // Temporary backward compatibility aliases (/api/*)
 app.use('/api/auth', authRoutes);
@@ -90,6 +108,8 @@ app.use('/api/sessions', sessionRoutes);
 app.use('/api/evaluations', evaluationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/system', systemRoutes);
+app.use('/api/templates', templateRoutes);
 
 app.use(errorHandler);
 

@@ -363,3 +363,70 @@ No external production dependencies added in Phase 5 (implemented using standard
 | `server/tests/analytics.test.js` | ADD | 10 automated integration tests verifying candidate, interviewer, and admin telemetry, Redis caching, date range filters, and RBAC forbidden gates. | Test runner | Phase 9a |
 | `docs/verification/phase-9.md` | ADD | Comprehensive Phase 9 verification report with exact execution output and test counts. | Documentation | Phase 9b |
 | `docs/PROGRESS.md` | MODIFY | Updated Phase 9 status to Done (124/124 tests). | Tracker | Phase 9b |
+
+---
+
+## Phase 10: Hardening, Accessibility, Final Review & Documentation
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `docs/api/openapi.yaml` | ADD | OpenAPI 3.1 schema specification documenting all REST endpoints, schemas, parameters, security schemes, and status codes. | API specification | Phase 10a |
+| `docs/DATABASE.md` | ADD | Database architecture documentation covering all 23 tables, foreign keys, cascades, indexes, and full Mermaid ER diagram. | Database documentation | Phase 10a |
+| `docs/SECURITY.md` | ADD | OWASP Top 10 API Security Checklist with verification methodology and codebase cross-references. | Security documentation | Phase 10a |
+| `docs/FINAL_REPORT.md` | ADD | Comprehensive enterprise upgrade report covering architecture, phases 0-10, verification gates, and operational runbook. | Project summary | Phase 10a |
+| `docs/verification/phase-10.md` | ADD | Comprehensive Phase 10 verification report with gate summaries and verification artifacts. | Documentation | Phase 10b |
+| `docs/PROGRESS.md` | MODIFY | Updated Phase 10 status to Done (124/124 tests). | Tracker | Phase 10b |
+
+---
+
+## Phase 11: Frontend Completion & Honest Demo-Mode Signalling
+
+### Dependency Additions (Justification Table)
+
+| Package | Version | Purpose | License | Maintenance Status | Audit Result |
+|---|---|---|---|---|---|
+| `vitest` (client) | ^5.1.0 | Fast, native Vite test runner for client React component testing. | MIT | Actively maintained | 0 vulnerabilities |
+| `@testing-library/react` (client) | ^16.3.2 | Component testing utility for React 19 verifying accessibility and DOM behavior. | MIT | Maintained by Testing Library | 0 vulnerabilities |
+| `@testing-library/jest-dom` (client) | ^6.9.1 | Custom Jest / Vitest matchers for asserting DOM node state. | MIT | Maintained by Testing Library | 0 vulnerabilities |
+| `jsdom` (client) | ^28.1.0 | Pure JavaScript implementation of WHATWG DOM and HTML standards for testing. | MIT | Actively maintained | 0 vulnerabilities |
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `docs/FRONTEND_COVERAGE.md` | ADD | Complete frontend audit analyzing Modules A–H against existing UI and backend APIs. | Documentation | Phase 11a |
+| `server/src/routes/systemRoutes.js` | ADD | Capabilities endpoint `GET /api/v1/system/capabilities` reporting active subsystem providers (AI, execution, redis, collab). | `server/src/app.js` | Phase 11a |
+| `server/src/routes/templateRoutes.js` | ADD | REST routes for listing, creating, and deleting interview question templates. | `server/src/app.js` | Phase 11a |
+| `server/src/config/env.js` | MODIFY | Added `ALLOW_MOCK_PROVIDERS` and `ALLOW_INMEMORY_REDIS` schema validation and production boot guard. | Server config | Phase 11a |
+| `server/src/app.js` | MODIFY | Mounted system capabilities and template management routes. | Server entry | Phase 11a |
+| `server/src/server.js` | MODIFY | Automatically attaches in-memory background worker when Redis is mock or fallback. | Server boot | Phase 11a |
+| `server/src/services/submissionService.js` | MODIFY | Added `isSimulated` and `provider` tags to code execution results. | Submissions API | Phase 11a |
+| `server/src/controllers/evaluationController.js` | MODIFY | Added `listReports` controller with role-scoped querying. | `server/src/routes/reportRoutes.js` | Phase 11a |
+| `server/src/routes/reportRoutes.js` | MODIFY | Mounted `GET /api/v1/reports` endpoint for interviewers/admins and candidates. | `server/src/app.js` | Phase 11a |
+| `server/tests/systemCapabilities.test.js` | ADD | Integration tests verifying system capabilities endpoint and production readiness guards (4 tests). | Server test runner | Phase 11a |
+| `server/tests/redis.test.js` | MODIFY | Updated readiness probe assertion to accommodate fallback labeling. | Server test runner | Phase 11a |
+| `client/src/components/layout/CapabilitiesBanner.jsx` | ADD | Persistent warning banner alerting users when AI, code execution, or Redis run in simulated or mock mode. | `client/src/components/layout/AppShell.jsx` | Phase 11b |
+| `client/src/components/layout/AppShell.jsx` | MODIFY | Embedded CapabilitiesBanner and added navigation links for Question Bank and Assessment Reports. | Navigation shell | Phase 11b |
+| `client/src/features/room/RunCodePanel.jsx` | ADD | Interactive coding runner panel with problem test cases, polling, submission status, hidden test redaction, and simulated badge. | `client/src/pages/Room.jsx` | Phase 11b |
+| `client/src/pages/Room.jsx` | MODIFY | Added "Run Code" drawer toggle and wired Monaco editor code accessor. | Live coding room | Phase 11b |
+| `client/src/features/reports/ReportView.jsx` | ADD | Comprehensive evaluation report view with dimension rubrics, overall score, strengths, recommendations, verified facts, human override form, and visible statutory AI disclaimer. | `client/src/pages/ReportsPage.jsx` | Phase 11b |
+| `client/src/pages/ReportsPage.jsx` | ADD | Dedicated reports page supporting both historical list view and detailed evaluation report views. | `client/src/App.jsx` | Phase 11b |
+| `client/src/features/resume/ResumeUploadModal.jsx` | ADD | PDF resume uploader validating %PDF- header, displaying extracted skill badges, and calculating keyword overlap match % against job descriptions. | `CandidateDashboard.jsx` | Phase 11b |
+| `client/src/features/practice/MockInterviewSession.jsx` | ADD | AI technical mock interview session with duration/domain configuration, live countdown timer, and sequential answer submission. | `CandidateDashboard.jsx` | Phase 11b |
+| `client/src/features/questions/QuestionManager.jsx` | ADD | Question Bank browser with domain/difficulty filters, authoring modal with public/hidden test case builder, and template manager. | `InterviewerDashboard.jsx`, `Dashboard.jsx` | Phase 11b |
+| `client/src/features/dashboard/CandidateDashboard.jsx` | MODIFY | Wired Resume Intelligence modal, AI Mock Practice modal, and Report View actions. | Candidate portal | Phase 11b |
+| `client/src/features/dashboard/InterviewerDashboard.jsx` | MODIFY | Wired Question Bank tab, Template manager, and Completed Interview Report view action. | Interviewer portal | Phase 11b |
+| `client/src/pages/Dashboard.jsx` | MODIFY | Added tab switching between Overview, Question Bank, and Assessment Reports. | Dashboard portal | Phase 11b |
+| `client/src/App.jsx` | MODIFY | Registered routes `/reports` and `/reports/:sessionId`. | App router | Phase 11b |
+| `client/vite.config.js` | MODIFY | Added Vitest test configuration (`globals: true`, `environment: 'jsdom'`). | Build pipeline | Phase 11b |
+| `client/src/setupTests.js` | ADD | Client testing bootstrap configuring `@testing-library/jest-dom`. | Client test runner | Phase 11b |
+| `client/src/__tests__/CapabilitiesBanner.test.jsx` | ADD | 3 unit tests verifying simulated system capability badges and honest demo mode disclosure. | Client test runner | Phase 11b |
+| `client/src/__tests__/RunCodePanel.test.jsx` | ADD | 2 unit tests verifying code execution runner, status polling, and hidden test redaction. | Client test runner | Phase 11b |
+| `client/src/__tests__/ResumeUploadModal.test.jsx` | ADD | 3 unit tests verifying PDF validation, skill extraction badges, and job description match scoring. | Client test runner | Phase 11b |
+| `client/src/__tests__/ReportView.test.jsx` | ADD | 2 unit tests verifying evaluation rubrics, human override controls, and statutory AI disclaimer. | Client test runner | Phase 11b |
+| `DEPLOY.md` | MODIFY | Documented `ALLOW_MOCK_PROVIDERS` and `ALLOW_INMEMORY_REDIS` production requirements. | Deployment guide | Phase 11c |
+| `docs/MANUAL_STEPS.md` | MODIFY | Documented production deployment flags for mock vs live infrastructure. | Operations guide | Phase 11c |
+| `docs/LIVE_RUN_REPORT_2.md` | ADD | Comprehensive live run verification report capturing evidence across all Phase 11 frontend interfaces with 8 screenshots. | Verification report | Phase 11c |
+| `docs/PROGRESS.md` | MODIFY | Updated Phase 11 status to Done (138/138 tests: 128 server + 10 client). | Progress tracker | Phase 11c |

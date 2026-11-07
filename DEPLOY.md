@@ -208,3 +208,32 @@ gunzip < backup_20261107_000000.sql.gz | docker compose exec -T db mysql -u inte
 | **DB connection error (`ECONNREFUSED` / `Access denied`)** | MySQL not ready or credentials mismatched | 1. Verify `DB_NAME`, `DB_PASSWORD`, and `DB_ROOT_PASSWORD` in `.env`.<br>2. If passwords were changed after MySQL volume initialization, remove old volume with `docker compose down -v` (CAUTION: clears DB data) and restart.<br>3. Check MySQL container memory consumption (`docker stats`). |
 | **WebSocket (`socket.io`) fails to connect** | Reverse proxy headers missing or mismatched URL | 1. Ensure Caddyfile contains `handle /socket.io/* { reverse_proxy server:5000 }`.<br>2. Check browser console network tab for `/socket.io/?EIO=4&transport=websocket`.<br>3. Verify valid JWT token is sent in socket handshake. |
 | **Out-of-memory during `npm run build`** | VM RAM exhausted (< 1.5 GB available) | 1. Add a 2 GB swapfile following Section 3.<br>2. Build images sequentially: `docker compose build web` followed by `docker compose build server`. |
+
+---
+
+## 12. Production Safeguards & Honest Demo-Mode Signalling
+
+To prevent silent degradations or accidental deployment of mock simulation engines to production environments, IntelliPrep AI enforces strict production startup guards and health checks:
+
+### 1. Mock Provider Production Startup Guard
+In production mode (`NODE_ENV === 'production'`), the server process strictly **refuses to boot** and throws an error if `AI_MOCK_MODE=true` or `EXECUTION_PROVIDER=mock`.
+- **Reason**: Guarantees that production environments never evaluate candidates or run code with simulated engines by accident.
+- **Demo Mode Override**: If you deliberately deploy a public live demonstration instance on a VM without live paid API keys, you must set an explicit bypass variable in `.env`:
+  ```bash
+  ALLOW_MOCK_PROVIDERS=true
+  ```
+
+### 2. Redis Cluster Readiness Guard (`/health/ready`)
+The container readiness probe at `GET /health/ready` inspects both MySQL and Redis health.
+- If an external Redis instance is unavailable, the system safely falls back to in-memory queues and cache.
+- In production (`NODE_ENV === 'production'`), `/health/ready` identifies this fallback as `"checks": { "redis": "in-memory-fallback" }` and returns **HTTP 503 Service Unavailable** so cloud orchestrators do not route live candidate traffic to a degraded single-instance cache.
+- To allow in-memory Redis in a production demo VM, set:
+  ```bash
+  ALLOW_INMEMORY_REDIS=true
+  ```
+
+### 3. Authenticated System Capabilities Transparency
+- Endpoint: `GET /api/v1/system/capabilities` (authenticated)
+- Response: Returns `{ aiProvider: "gemini"|"mock", executionProvider: "judge0"|"mock", redis: "redis"|"in-memory" }` without exposing internal keys or secrets.
+- Whenever mock modes are active, the frontend automatically surfaces a persistent **Demonstration Mode Active** banner and labels reports and code runs as **"Simulated result"**.
+

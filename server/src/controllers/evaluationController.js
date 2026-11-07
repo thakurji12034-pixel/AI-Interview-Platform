@@ -75,6 +75,23 @@ class EvaluationController {
       next(err);
     }
   }
+
+  async listReports(req, res, next) {
+    try {
+      const where = {};
+      if (req.user.role === 'candidate') {
+        where.candidateId = req.user.id;
+      }
+      const reports = await InterviewReport.findAll({
+        where,
+        order: [['createdAt', 'DESC']],
+        limit: 50,
+      });
+      return res.json({ reports });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new EvaluationController();

@@ -34,9 +34,11 @@ describe('Redis, Cache Service & Background Job Infrastructure', () => {
       const res = await request(app).get('/health/ready');
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('ready');
+      const client = getRedisClient();
+      const expectedRedisStatus = client.isMock ? 'in-memory-fallback' : 'connected';
       expect(res.body.checks).toEqual({
         database: 'connected',
-        redis: 'connected',
+        redis: expectedRedisStatus,
       });
       expect(res.body.uptime).toBeGreaterThanOrEqual(0);
       expect(res.body.timestamp).toBeDefined();

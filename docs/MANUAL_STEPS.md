@@ -21,3 +21,13 @@ This document details every action and credential that the platform operator mus
 4. **Environment File**: Copy `.env.example` to `.env` on the host and populate strong secrets using `openssl rand -hex 32`.
 5. **Launch**: Execute `docker compose up -d --build`.
 
+---
+
+## 3. Production Safeguards & Demo Mode Overrides
+
+| Environment Flag | Default in Production | Purpose | Required Action for Production Demo |
+|---|---|---|---|
+| `ALLOW_MOCK_PROVIDERS` | `false` | Prevents server boot if `AI_MOCK_MODE=true` or `EXECUTION_PROVIDER=mock`. | Set to `true` ONLY if running a live demo VM without live Gemini API or Judge0 keys. |
+| `ALLOW_INMEMORY_REDIS` | `false` | Causes `/health/ready` to return 503 if Redis cluster is absent. | Set to `true` ONLY if running on a single VM without an external Redis instance. |
+
+

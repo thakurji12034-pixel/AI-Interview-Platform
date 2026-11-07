@@ -1,9 +1,9 @@
 # IntelliPrep AI — Final Enterprise Upgrade Report
 
 **Platform**: IntelliPrep AI (Advanced Technical Assessment & Collaborative Interview Platform)  
-**Date**: November 7, 2026  
-**Final Branch**: `feature/intelliprep-phase-10`  
-**Consolidation Branch**: `feature/intelliprep-complete`  
+**Date**: November 8, 2026  
+**Final Branch**: `feature/intelliprep-phase-11`  
+**Consolidation Branch**: `feature/intelliprep-final`  
 **Repository**: `D:\ai-interview-platform`
 
 ---
@@ -21,6 +21,8 @@ The "AI Interview Platform" has been autonomously upgraded into **IntelliPrep AI
 - Real-time conflict-free collaborative editing powered by Yjs CRDTs over Socket.io with server-authoritative observer mode.
 - Accessible role-scoped analytics and performance visualizations complying with WCAG 2.1 AA.
 - Production-grade deployment automation with non-root multi-stage Docker containers, Caddy reverse proxy, and health probes.
+- Frontend completeness across all platform modules (A–H) with interactive test-runner UI, evaluation reports with statutory AI disclaimers, real PDF resume skill extraction & job match analyzer, question authoring modal, and AI mock practice sessions.
+- Honest demo-mode signalling: persistent capabilities disclosure banner, production mock guards (`ALLOW_MOCK_PROVIDERS`, `ALLOW_INMEMORY_REDIS`), and dual health readiness checks.
 
 ---
 
@@ -133,11 +135,26 @@ The "AI Interview Platform" has been autonomously upgraded into **IntelliPrep AI
 - Accessible Recharts components with accessible HTML data table toggles (WCAG 2.1 AA).
 - Test suite expanded (**124 / 124 PASS**).
 
-### Phase 10: Hardening, Documentation & Final Review (Commit Current)
+### Phase 10: Hardening, Documentation & Final Review (Commit `848dcf7`)
 - OpenAPI 3.1 specification at `docs/api/openapi.yaml` covering all REST endpoints.
 - Database documentation and complete Mermaid ERD at `docs/DATABASE.md`.
 - Security audit verification checklist against OWASP Top 10 API Security in `docs/SECURITY.md`.
-- Final consolidation branch `feature/intelliprep-complete` created.
+- Preliminary consolidation branch `feature/intelliprep-complete` created.
+
+### Phase 11: Frontend Completion & Honest Demo-Mode Signalling (Commit Current)
+- **Frontend Coverage Audit**: Thorough gap analysis documented in `docs/FRONTEND_COVERAGE.md` covering Modules A through H.
+- **Interactive Code Execution Runner**: Embedded `RunCodePanel` in coding room with live status polling, sample vs hidden test execution, sensitive output redaction, and simulated badge.
+- **Evaluation Reports UI**: Candidate and Interviewer report view (`ReportView.jsx`) at `/reports/:sessionId` and history list (`ReportsPage.jsx`) at `/reports`, displaying 5-dimension rubric breakdowns, overall score, strengths, recommendations, verified code execution facts, human interviewer override controls, and statutory AI disclaimer.
+- **Resume Intelligence Dropzone**: `ResumeUploadModal.jsx` with `%PDF-` client validation (<5MB), extracted skills cloud, and Job Description keyword overlap analyzer displaying match percentage.
+- **AI Mock Technical Practice**: `MockInterviewSession.jsx` with difficulty/domain configuration, live countdown timer, answer submission, and sequential progression.
+- **Question Bank & Template Management**: `QuestionManager.jsx` with domain/difficulty filters, question authoring modal with public/hidden test cases, and interview template manager.
+- **Honest Demo-Mode Signalling**:
+  - Persistent capabilities disclosure banner (`CapabilitiesBanner.jsx`) querying `/api/v1/system/capabilities`.
+  - Backend readiness probe (`/health/ready`) returning 503 Service Unavailable if Redis is in-memory fallback unless explicitly allowed via `ALLOW_INMEMORY_REDIS=true`.
+  - Production boot guard preventing startup if mock AI or mock execution is active unless explicitly overridden via `ALLOW_MOCK_PROVIDERS=true`.
+  - Background queue runner automatically attaching in-memory processor dispatch when running under mock Redis.
+- **Client Automated Test Suite**: Configured Vitest and React Testing Library (`client/src/__tests__/`), delivering 10 passing unit tests.
+- **Live Run Evidence**: Captured in `docs/LIVE_RUN_REPORT_2.md` with 8 authentic browser screenshots in `docs/screenshots/`.
 
 ---
 
@@ -147,12 +164,15 @@ The "AI Interview Platform" has been autonomously upgraded into **IntelliPrep AI
 |---|---|:---:|
 | **Server Lint** | `npm run lint` in `server/` (ESLint flat config) | **0 errors, 0 warnings** |
 | **Client Lint** | `npm run lint` in `client/` (ESLint React hooks) | **0 errors, 0 warnings** |
-| **Client Build** | `npm run build` in `client/` (Vite production bundle) | **Clean build in 15.34s** |
-| **Automated Tests** | `npm test` in `server/` across all 12 test suites | **124 / 124 PASS** (119.5s) |
+| **Client Build** | `npm run build` in `client/` (Vite production bundle) | **Clean build in 9.00s** |
+| **Server Automated Tests** | `npm test` in `server/` across all 13 test suites | **128 / 128 PASS** |
+| **Client Automated Tests** | `npm test` in `client/` across all 4 test suites (Vitest) | **10 / 10 PASS** |
+| **Total Automated Tests** | Combined server and client test suites | **138 / 138 PASS** |
 | **Socket Regression** | `node scripts/socketTest.js` legacy verification | **11 / 11 PASS** |
 | **Security Audit (Server)** | `npm audit --omit=dev --audit-level=high` | **0 High/Critical vulnerabilities** |
 | **Security Audit (Client)** | `npm audit --omit=dev --audit-level=high` | **0 vulnerabilities** |
 | **Data Safety** | Isolated migration testing on `interview_platform_migrate_test` | **100% verified across all 7 migrations** |
+| **Live Run Evidence** | End-to-end evidence run with screenshots | **8 screenshots in `docs/screenshots/`, detailed in `docs/LIVE_RUN_REPORT_2.md`** |
 
 ---
 
@@ -181,14 +201,23 @@ REDIS_MOCK=false
 COLLAB_ENGINE=yjs
 AI_MOCK_MODE=true
 EXECUTION_PROVIDER=mock
+ALLOW_MOCK_PROVIDERS=false
+ALLOW_INMEMORY_REDIS=false
 ```
+
+*Note on Demo / Local Mode:* If running locally without live external providers (Judge0, Gemini API, or external Redis), set `ALLOW_MOCK_PROVIDERS=true` and `ALLOW_INMEMORY_REDIS=true` so the application runs with honest in-app simulation badges.
 
 ### B. Running Automated Tests
 ```bash
+# Run server test suites (13 suites, 128 tests)
 cd server
 npm test
+
+# Run client test suites (4 suites, 10 tests)
+cd client
+npm test
 ```
-*Note: The test harness automatically configures `DB_NAME=interview_platform_test` and enforces database isolation.*
+*Note: The server test harness automatically configures `DB_NAME=interview_platform_test` and enforces database isolation.*
 
 ### C. Running Legacy Socket Regression
 ```bash
@@ -215,7 +244,8 @@ docker compose up -d --build
 
 Health checks can be monitored at:
 - `http://<domain>/api/health/live` (Liveness)
-- `http://<domain>/api/health/ready` (Readiness: verifies MySQL + Redis)
+- `http://<domain>/api/health/ready` (Readiness: verifies MySQL + Redis connectivity)
+- `http://<domain>/api/v1/system/capabilities` (Subsystem provider transparency)
 
 ---
 
@@ -225,4 +255,4 @@ Health checks can be monitored at:
 2. **Git Remote Safety**: **Zero commits or tags have been pushed to any remote repository.**
 3. **Database Safety**: Dedicated external backups created before every migration phase in `D:\db_backups\`. All migrations tested on isolated database `interview_platform_migrate_test` before applying to development database.
 4. **Branch Lineage**: Autonomous progression executed strictly through sequential feature branches:
-   `feature/deploy` -> `feature/intelliprep-phase-1` -> ... -> `feature/intelliprep-phase-9` -> `feature/intelliprep-phase-10` -> `feature/intelliprep-complete`.
+   `feature/deploy` -> `feature/intelliprep-phase-1` -> ... -> `feature/intelliprep-phase-10` -> `feature/intelliprep-complete` -> `feature/intelliprep-phase-11` -> `feature/intelliprep-final`.

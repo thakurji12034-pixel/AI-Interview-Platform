@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Room from './pages/Room';
 import AcceptInvite from './pages/AcceptInvite';
+import ReportsPage from './pages/ReportsPage';
 
 export default function App() {
   return (
@@ -13,6 +14,8 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/room/:roomId" element={<Room />} />
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/reports/:sessionId" element={<ReportsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

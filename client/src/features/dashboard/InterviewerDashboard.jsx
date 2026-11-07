@@ -17,6 +17,7 @@ import {
   Play,
   CheckCircle,
   XCircle,
+  Award,
 } from 'lucide-react';
 
 export const InterviewerDashboard = () => {
@@ -269,6 +270,17 @@ export const InterviewerDashboard = () => {
                     >
                       <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                       Finish
+                    </Button>
+                  )}
+                  {iv.status === 'completed' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigate(`/reports/${iv.id}`)}
+                      className="text-xs"
+                    >
+                      <Award className="w-3.5 h-3.5 mr-1 text-indigo-600" />
+                      Report
                     </Button>
                   )}
                   {iv.status === 'scheduled' && (

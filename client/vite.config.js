@@ -11,4 +11,9 @@ export default defineConfig({
       'monaco-editor/esm/vs/editor/editor.api': 'monaco-editor',
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
+  },
 })

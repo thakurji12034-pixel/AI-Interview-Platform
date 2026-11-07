@@ -6,15 +6,19 @@ import { Button } from '../../components/ui/Button';
 import { SkeletonLoader } from '../../components/ui/SkeletonLoader';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useToast } from '../../context/useToast';
-import { Calendar, Clock, Video, XCircle } from 'lucide-react';
+import { Calendar, Clock, Video, XCircle, FileText, Sparkles, Award } from 'lucide-react';
 import { ScoreProgressionChart } from '../../components/analytics/ScoreProgressionChart';
 import { SkillRadarChart } from '../../components/analytics/SkillRadarChart';
+import { ResumeUploadModal } from '../resume/ResumeUploadModal';
+import { MockInterviewSession } from '../practice/MockInterviewSession';
 
 export const CandidateDashboard = () => {
   const [interviews, setInterviews] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [showPracticeModal, setShowPracticeModal] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -93,20 +97,41 @@ export const CandidateDashboard = () => {
             Track your technical assessments, join live coding sessions, and view evaluation statuses.
           </p>
         </div>
-        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-          {['all', 'scheduled', 'in_progress', 'completed'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-3 py-1 text-xs font-medium rounded-md capitalize transition ${
-                filter === status
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-            >
-              {status.replace('_', ' ')}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowResumeModal(true)}
+            className="text-xs"
+          >
+            <FileText className="w-3.5 h-3.5 mr-1" />
+            Resume & Skills Match
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={() => setShowPracticeModal(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+          >
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
+            AI Practice Mock
+          </Button>
+
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+            {['all', 'scheduled', 'in_progress', 'completed'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={`px-3 py-1 text-xs font-medium rounded-md capitalize transition ${
+                  filter === status
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                {status.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -177,6 +202,17 @@ export const CandidateDashboard = () => {
                       Join Coding Room
                     </Button>
                   )}
+                  {iv.status === 'completed' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs"
+                      onClick={() => navigate(`/reports/${iv.id}`)}
+                    >
+                      <Award className="w-3.5 h-3.5 mr-1" />
+                      View Report
+                    </Button>
+                  )}
                   {iv.status === 'scheduled' && (
                     <Button
                       size="sm"
@@ -194,6 +230,19 @@ export const CandidateDashboard = () => {
           })}
         </div>
       )}
+
+      {/* Resume Upload & Job Match Modal */}
+      <ResumeUploadModal
+        isOpen={showResumeModal}
+        onClose={() => setShowResumeModal(false)}
+        onResumeUpdated={fetchInterviews}
+      />
+
+      {/* AI Mock Interview Modal */}
+      <MockInterviewSession
+        isOpen={showPracticeModal}
+        onClose={() => setShowPracticeModal(false)}
+      />
     </div>
   );
 };

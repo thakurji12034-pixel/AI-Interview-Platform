@@ -47,6 +47,12 @@ async function start() {
 
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT} in ${config.env} mode`);
+      const { getRedisClient } = require('./config/redis');
+      const { startWorker } = require('./worker');
+      const redisClient = getRedisClient();
+      if (redisClient.isMock || config.redis.mock) {
+        startWorker();
+      }
     });
   } catch (err) {
     logger.error(`Server startup failure: ${err.message}`);

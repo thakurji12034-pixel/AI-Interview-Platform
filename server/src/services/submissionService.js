@@ -1,6 +1,7 @@
 const { Submission, Question, User } = require('../models');
 const { queueManager, QUEUE_NAMES } = require('../jobs/queueManager');
 const { EXECUTION_LIMITS } = require('./execution');
+const config = require('../config/env');
 const AppError = require('../utils/AppError');
 
 class SubmissionService {
@@ -78,6 +79,9 @@ class SubmissionService {
    */
   serializeSubmission(submission, role) {
     const plain = typeof submission.toJSON === 'function' ? submission.toJSON() : { ...submission };
+
+    plain.provider = plain.provider || (config.execution.provider === 'judge0' ? 'judge0' : 'mock');
+    plain.isSimulated = plain.provider === 'mock';
 
     if (role === 'candidate' && Array.isArray(plain.testResults)) {
       plain.testResults = plain.testResults.map((tr) => {

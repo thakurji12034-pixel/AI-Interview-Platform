@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import { useTheme } from '../../context/useTheme';
 import { Badge } from '../ui/Badge';
+import { CapabilitiesBanner } from './CapabilitiesBanner';
 import {
   Sun,
   Moon,
@@ -36,16 +37,21 @@ export const AppShell = ({ children, activeTab, onTabChange }) => {
         { id: 'users', label: 'User Directory', icon: Users },
         { id: 'invitations', label: 'Invitations', icon: FileText },
         { id: 'audit-logs', label: 'Audit Trail', icon: FileText },
+        { id: 'questions', label: 'Question Bank', icon: Code2 },
+        { id: 'reports', label: 'Assessment Reports', icon: FileText },
         { id: 'settings', label: 'Platform Settings', icon: Sliders },
       ];
     }
     if (user.role === 'interviewer') {
       return [
         { id: 'interviews', label: 'Scheduled Sessions', icon: Calendar },
+        { id: 'questions', label: 'Question Bank', icon: Code2 },
+        { id: 'reports', label: 'Assessment Reports', icon: FileText },
       ];
     }
     return [
       { id: 'interviews', label: 'My Interviews', icon: Calendar },
+      { id: 'reports', label: 'Assessment Reports', icon: FileText },
     ];
   };
 
@@ -109,6 +115,7 @@ export const AppShell = ({ children, activeTab, onTabChange }) => {
           </div>
         </div>
       </header>
+      <CapabilitiesBanner />
 
       {/* Main Content Area */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
