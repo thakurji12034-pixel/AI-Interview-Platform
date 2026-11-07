@@ -8,6 +8,8 @@ const sequelize = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const questionRoutes = require('./routes/questionRoutes');
+const assessmentRoutes = require('./routes/assessmentRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const { isRedisHealthy } = require('./config/redis');
 
@@ -61,11 +63,15 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/interviews', interviewRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/questions', questionRoutes);
+app.use('/api/v1/assessments', assessmentRoutes);
 
 // Temporary backward compatibility aliases (/api/*)
 app.use('/api/auth', authRoutes);
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/questions', questionRoutes);
+app.use('/api/assessments', assessmentRoutes);
 
 app.use(errorHandler);
 

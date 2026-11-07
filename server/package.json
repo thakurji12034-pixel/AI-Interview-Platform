@@ -14,6 +14,7 @@
     "db:migrate:undo": "node src/scripts/migrate.js down",
     "db:migrate:status": "node src/scripts/migrate.js status",
     "seed:admin": "node src/scripts/seedAdmin.js",
+    "seed:questions": "node src/scripts/seedQuestions.js",
     "worker": "node src/worker.js"
   },
   "keywords": [],

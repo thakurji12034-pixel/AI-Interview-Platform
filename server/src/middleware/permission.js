@@ -39,5 +39,6 @@ const requirePermission = (permission) => {
   };
 };
 
+requirePermission.requirePermission = requirePermission;
 module.exports = requirePermission;
 
