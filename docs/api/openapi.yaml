@@ -1,0 +1,848 @@
+openapi: 3.1.0
+info:
+  title: IntelliPrep AI Platform API
+  description: |
+    Production-grade enterprise AI interview assessment, real-time collaborative coding, 
+    and candidate evaluation engine API specification.
+  version: 2.0.0
+servers:
+  - url: /api/v1
+    description: Primary API v1 Endpoint
+  - url: /api
+    description: Backward Compatibility Alias
+
+tags:
+  - name: Authentication
+    description: User registration, login, token family rotation, session restoration
+  - name: Administrative Management
+    description: User directory, RBAC elevation, token revocation, invitations, audit logs
+  - name: Interview Scheduling & Rooms
+    description: Technical interview scheduling, room sessions, and CRDT snapshot timeline
+  - name: Question Bank & Assessments
+    description: Questions, test cases, automated candidate assessments, anti-leak serialization
+  - name: Code Execution
+    description: Pluggable code execution engine (Judge0 / Sandboxed Mock)
+  - name: AI Interview Sessions
+    description: Adaptive mock interviews, timer enforcement, and follow-up generation
+  - name: Resume Intelligence
+    description: PDF resume parsing, text extraction, and skill taxonomy normalization
+  - name: Evaluation & Reports
+    description: Server-authoritative rubric evaluation, human overrides, and synthesis reports
+  - name: Analytics & Visualizations
+    description: Role-scoped aggregate metrics, score progression, and platform throughput
+  - name: Health & Diagnostics
+    description: Dual Kubernetes-style liveness and readiness probes
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new candidate account
+      description: Public registration endpoint restricted to candidate role. Interviewers and admins must be invited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Authenticate user credentials
+      description: Validates email and password, issues a 15-minute access token and sets an httpOnly refresh token cookie.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: refreshToken=...; HttpOnly; Path=/api/auth; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Rotate refresh token and issue new access token
+      description: Uses token family rotation with automatic revocation of all family tokens on reuse detection.
+      responses:
+        '200':
+          description: Tokens refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Terminate session and invalidate refresh token
+      responses:
+        '200':
+          description: Successfully logged out
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Retrieve current authenticated user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Authenticated user details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserProfile'
+
+  /interviews:
+    get:
+      tags: [Interview Scheduling & Rooms]
+      summary: List user interviews
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, in_progress, completed, cancelled]
+      responses:
+        '200':
+          description: List of scheduled interviews
+    post:
+      tags: [Interview Scheduling & Rooms]
+      summary: Schedule a new technical interview
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleInterviewRequest'
+      responses:
+        '201':
+          description: Interview scheduled successfully
+
+  /interviews/{id}/status:
+    patch:
+      tags: [Interview Scheduling & Rooms]
+      summary: Update interview state machine status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [scheduled, in_progress, completed, cancelled]
+      responses:
+        '200':
+          description: Status updated
+
+  /interviews/{id}/snapshots:
+    get:
+      tags: [Interview Scheduling & Rooms]
+      summary: Get timeline of code snapshots for an interview
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Chronological snapshot list
+        '403':
+          description: Forbidden for candidates
+        '404':
+          description: Interview not found or unauthorized
+    post:
+      tags: [Interview Scheduling & Rooms]
+      summary: Explicitly save a code snapshot
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                language:
+                  type: string
+      responses:
+        '201':
+          description: Snapshot persisted
+
+  /interviews/{id}/room-sessions:
+    get:
+      tags: [Interview Scheduling & Rooms]
+      summary: Retrieve participant room join/leave telemetry
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Participant room history
+        '403':
+          description: Forbidden for candidates
+
+  /questions:
+    get:
+      tags: [Question Bank & Assessments]
+      summary: Query technical question bank with anti-leak sanitization
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [beginner, intermediate, advanced]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated question bank items
+    post:
+      tags: [Question Bank & Assessments]
+      summary: Create a question with public and hidden test cases
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuestionRequest'
+      responses:
+        '201':
+          description: Question created
+        '403':
+          description: Forbidden for candidates
+
+  /questions/random:
+    get:
+      tags: [Question Bank & Assessments]
+      summary: Select random questions avoiding previous candidate encounters
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 3
+      responses:
+        '200':
+          description: Filtered questions
+
+  /assessments:
+    get:
+      tags: [Question Bank & Assessments]
+      summary: List assessments for authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Assessment list
+    post:
+      tags: [Question Bank & Assessments]
+      summary: Create technical assessment for a candidate
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssessmentRequest'
+      responses:
+        '201':
+          description: Assessment created
+
+  /assessments/{id}/submit:
+    post:
+      tags: [Question Bank & Assessments]
+      summary: Submit candidate code for assessment question
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitAssessmentCodeRequest'
+      responses:
+        '200':
+          description: Code submission recorded
+
+  /execute:
+    post:
+      tags: [Code Execution]
+      summary: Execute candidate source code in secure sandbox
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteCodeRequest'
+      responses:
+        '200':
+          description: Execution result with stdout, stderr, compile output, and runtime
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionResponse'
+
+  /sessions:
+    post:
+      tags: [AI Interview Sessions]
+      summary: Initialize an AI-assisted interview session
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '201':
+          description: Session created
+
+  /sessions/{id}/start:
+    post:
+      tags: [AI Interview Sessions]
+      summary: Start interview session and establish server-authoritative timer
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Session started with server timestamp
+
+  /sessions/{id}/answers:
+    post:
+      tags: [AI Interview Sessions]
+      summary: Submit answer to current interview question
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [questionId, answerText]
+              properties:
+                questionId:
+                  type: integer
+                answerText:
+                  type: string
+      responses:
+        '200':
+          description: Answer recorded; follow-up question returned if triggered
+
+  /sessions/{id}/complete:
+    post:
+      tags: [AI Interview Sessions]
+      summary: Finalize session and trigger holistic AI synthesis evaluation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Session completed
+
+  /resumes/upload:
+    post:
+      tags: [Resume Intelligence]
+      summary: Upload PDF resume for text extraction and skill analysis
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [resume]
+              properties:
+                resume:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Resume uploaded and queued for processing
+
+  /evaluations/evaluate:
+    post:
+      tags: [Evaluation & Reports]
+      summary: Evaluate candidate answer across 5 rubric dimensions
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateAnswerRequest'
+      responses:
+        '200':
+          description: Evaluation queued or completed
+
+  /evaluations/{id}/override:
+    patch:
+      tags: [Evaluation & Reports]
+      summary: Submit human interviewer score override and notes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [score]
+              properties:
+                score:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Human override recorded
+
+  /reports/sessions/{sessionId}:
+    get:
+      tags: [Evaluation & Reports]
+      summary: Fetch comprehensive evaluation telemetry report
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Complete synthesis report
+
+  /analytics/candidate:
+    get:
+      tags: [Analytics & Visualizations]
+      summary: Retrieve candidate score history, skill taxonomy profile, and submission metrics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Candidate personal analytics
+
+  /analytics/interviewer:
+    get:
+      tags: [Analytics & Visualizations]
+      summary: Retrieve conducted session metrics, score distribution histogram, and rubric averages
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Interviewer workspace analytics
+        '403':
+          description: Forbidden for candidates
+
+  /analytics/admin:
+    get:
+      tags: [Analytics & Visualizations]
+      summary: Retrieve platform user velocity, assessment throughput, AI token metrics, and audit activity
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: System administrative telemetry
+        '403':
+          description: Forbidden for non-administrators
+
+  /admin/users:
+    get:
+      tags: [Administrative Management]
+      summary: Paginated directory of platform users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User directory
+        '403':
+          description: Forbidden for non-administrators
+
+  /admin/invitations:
+    get:
+      tags: [Administrative Management]
+      summary: List generated invitation tokens
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Invitation list
+    post:
+      tags: [Administrative Management]
+      summary: Generate a single-use cryptographic invitation
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [interviewer, admin]
+      responses:
+        '201':
+          description: Invitation created
+
+  /admin/audit-logs:
+    get:
+      tags: [Administrative Management]
+      summary: Search and inspect immutable security audit logs
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Audit logs list
+
+  /health/live:
+    get:
+      tags: [Health & Diagnostics]
+      summary: Kubernetes liveness probe
+      responses:
+        '200':
+          description: Process is running
+
+  /health/ready:
+    get:
+      tags: [Health & Diagnostics]
+      summary: Kubernetes readiness probe checking MySQL and Redis connectivity
+      responses:
+        '200':
+          description: All critical backend dependencies are connected
+        '503':
+          description: Database or cache is unreachable
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters or schema validation failure
+    Unauthorized:
+      description: Authentication credentials missing, expired, or invalid
+    Forbidden:
+      description: Insufficient permissions to access this resource
+    NotFound:
+      description: Resource not found or hidden to prevent object enumeration
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [candidate, interviewer, admin]
+        isActive:
+          type: boolean
+
+    ScheduleInterviewRequest:
+      type: object
+      required: [candidateEmail, title, scheduledAt]
+      properties:
+        candidateEmail:
+          type: string
+          format: email
+        title:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+          default: 60
+
+    CreateQuestionRequest:
+      type: object
+      required: [title, statement, domain, difficulty, type]
+      properties:
+        title:
+          type: string
+        statement:
+          type: string
+        domain:
+          type: string
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        type:
+          type: string
+          enum: [coding, conceptual, behavioral]
+        starterCode:
+          type: string
+        referenceKeyPoints:
+          type: string
+        testCases:
+          type: array
+          items:
+            type: object
+            required: [input, expectedOutput]
+            properties:
+              input:
+                type: string
+              expectedOutput:
+                type: string
+              isHidden:
+                type: boolean
+
+    CreateAssessmentRequest:
+      type: object
+      required: [candidateId, title, questionIds]
+      properties:
+        candidateId:
+          type: integer
+        title:
+          type: string
+        questionIds:
+          type: array
+          items:
+            type: integer
+        durationMinutes:
+          type: integer
+          default: 60
+
+    SubmitAssessmentCodeRequest:
+      type: object
+      required: [assessmentQuestionId, code, language]
+      properties:
+        assessmentQuestionId:
+          type: integer
+        code:
+          type: string
+        language:
+          type: string
+
+    ExecuteCodeRequest:
+      type: object
+      required: [sourceCode, language]
+      properties:
+        sourceCode:
+          type: string
+        language:
+          type: string
+          enum: [javascript, python, java, cpp]
+        stdin:
+          type: string
+        expectedOutput:
+          type: string
+
+    ExecutionResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [accepted, wrong_answer, time_limit_exceeded, runtime_error, compilation_error]
+        stdout:
+          type: string
+        stderr:
+          type: string
+        compileOutput:
+          type: string
+        runtimeMs:
+          type: integer
+        memoryKb:
+          type: integer
+
+    CreateSessionRequest:
+      type: object
+      required: [type, difficulty, durationMinutes]
+      properties:
+        type:
+          type: string
+          enum: [technical, hr, mixed]
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        durationMinutes:
+          type: integer
+
+    EvaluateAnswerRequest:
+      type: object
+      required: [sessionId, questionId, candidateAnswer]
+      properties:
+        sessionId:
+          type: integer
+        questionId:
+          type: integer
+        candidateAnswer:
+          type: string
+        codeSnippet:
+          type: string
