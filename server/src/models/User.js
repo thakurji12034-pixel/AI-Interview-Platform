@@ -14,11 +14,16 @@ const User = sequelize.define(
     },
     passwordHash: { type: DataTypes.STRING, allowNull: false },
     role: {
-      type: DataTypes.ENUM('candidate', 'interviewer'),
+      type: DataTypes.ENUM('candidate', 'interviewer', 'admin'),
       allowNull: false,
       defaultValue: 'candidate',
     },
-    refreshToken: { type: DataTypes.TEXT, allowNull: true }, // Stores SHA-256 hash of active refresh token
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+    refreshToken: { type: DataTypes.TEXT, allowNull: true }, // Stores SHA-256 hash of active refresh token (legacy fallback)
   },
   { tableName: 'users', timestamps: true }
 );

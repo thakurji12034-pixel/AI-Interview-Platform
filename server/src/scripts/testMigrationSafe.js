@@ -5,7 +5,7 @@ const { createMigrator } = require('../config/migrator');
 const config = require('../config/env');
 
 const TEST_DB = 'interview_platform_migrate_test';
-const BACKUP_PATH = 'D:\\db_backups\\interview_platform_pre_intelliprep.sql';
+const BACKUP_PATH = 'D:\\db_backups\\interview_platform_pre_phase_2.sql';
 
 const log = (msg) => console.log(`[MIGRATION-TEST] ${msg}`);
 
@@ -78,6 +78,16 @@ async function run() {
   }
   log('VERIFIED: All 4 required performance/unique indexes are present.');
 
+  const [tablesAfterUp] = await testSequelize.query('SHOW TABLES');
+  const tableNames = tablesAfterUp.map((r) => Object.values(r)[0]);
+  log(`Tables after UP: ${tableNames.join(', ')}`);
+  for (const t of ['invitations', 'refresh_tokens', 'audit_logs', 'platform_settings']) {
+    if (!tableNames.includes(t)) {
+      throw new Error(`FAILED: Expected table ${t} not found after UP!`);
+    }
+  }
+  log('VERIFIED: All Phase 2 tables (invitations, refresh_tokens, audit_logs, platform_settings) created.');
+
   // 5. Verify Idempotency: Running UP again
   log('Testing Idempotency: Running migration UP a second time...');
   const appliedSecond = await migrator.up();
@@ -107,12 +117,15 @@ async function run() {
   if (interviewsAfterDown[0].count !== interviewsBefore[0].count) {
     throw new Error(`FAILED: Interviews were modified or dropped during down! Before: ${interviewsBefore[0].count}, After: ${interviewsAfterDown[0].count}`);
   }
-  for (const idx of requiredIndexes) {
-    if (indexNamesAfterDown.includes(idx)) {
-      throw new Error(`FAILED: Index ${idx} was NOT dropped during down!`);
+  const [tablesAfterDown] = await testSequelize.query('SHOW TABLES');
+  const tableNamesAfterDown = tablesAfterDown.map((r) => Object.values(r)[0]);
+  log(`Tables after DOWN: ${tableNamesAfterDown.join(', ')}`);
+  for (const t of ['invitations', 'refresh_tokens', 'audit_logs', 'platform_settings']) {
+    if (tableNamesAfterDown.includes(t)) {
+      throw new Error(`FAILED: Table ${t} was NOT dropped during down!`);
     }
   }
-  log('VERIFIED: DOWN removed the 4 indexes while keeping 100% of tables, users (5), and interviews (4) intact.');
+  log('VERIFIED: DOWN removed the 4 tables while keeping 100% of baseline users, interviews, and indexes intact.');
 
   // 7. Re-apply UP to verify clean re-application
   log('Re-applying migration UP after rollback...');

@@ -12,7 +12,8 @@
     "user:create": "node src/scripts/createUser.js",
     "db:migrate": "node src/scripts/migrate.js up",
     "db:migrate:undo": "node src/scripts/migrate.js down",
-    "db:migrate:status": "node src/scripts/migrate.js status"
+    "db:migrate:status": "node src/scripts/migrate.js status",
+    "seed:admin": "node src/scripts/seedAdmin.js"
   },
   "keywords": [],
   "author": "Vandana Tanwar",
