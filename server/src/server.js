@@ -4,6 +4,8 @@ const { logger } = require('./utils/logger');
 const app = require('./app');
 const sequelize = require('./config/db');
 const { initSockets } = require('./sockets');
+const { closeRedis } = require('./config/redis');
+const { queueManager } = require('./jobs/queueManager');
 
 const server = http.createServer(app);
 initSockets(server);
@@ -58,13 +60,15 @@ async function handleShutdown(signal) {
   isShuttingDown = true;
   logger.info(`Received ${signal}. Initiating graceful shutdown...`);
 
-  const closeDb = async () => {
+  const closeDbAndRedis = async () => {
     try {
+      await queueManager.closeAll();
+      await closeRedis();
       await sequelize.close();
-      logger.info('Database connection closed gracefully');
+      logger.info('Database and Redis connections closed gracefully');
       process.exit(0);
     } catch (dbErr) {
-      logger.error(`Error closing database connection: ${dbErr.message}`);
+      logger.error(`Error closing database or Redis connection: ${dbErr.message}`);
       process.exit(1);
     }
   };
@@ -76,10 +80,10 @@ async function handleShutdown(signal) {
         process.exit(1);
       }
       logger.info('HTTP server closed');
-      closeDb();
+      closeDbAndRedis();
     });
   } else {
-    closeDb();
+    closeDbAndRedis();
   }
 
   // Force shutdown after 10s if graceful termination hangs

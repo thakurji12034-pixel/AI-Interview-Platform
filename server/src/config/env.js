@@ -14,6 +14,11 @@ const envSchema = Joi.object({
   JWT_REFRESH_SECRET: Joi.string().min(32).required(),
   CLIENT_URL: Joi.string().default('http://localhost:5173'),
   ALLOW_DEV_INTERVIEWER_REGISTRATION: Joi.boolean().default(false),
+  REDIS_HOST: Joi.string().default('127.0.0.1'),
+  REDIS_PORT: Joi.number().port().default(6379),
+  REDIS_PASSWORD: Joi.string().allow('').default(''),
+  REDIS_MOCK: Joi.boolean().default(false),
+  REDIS_ENABLED: Joi.boolean().default(true),
 })
   .unknown(true);
 
@@ -53,5 +58,12 @@ module.exports = {
   },
   clientUrl: envVars.CLIENT_URL,
   allowDevInterviewerRegistration: envVars.ALLOW_DEV_INTERVIEWER_REGISTRATION,
+  redis: {
+    host: envVars.REDIS_HOST,
+    port: envVars.REDIS_PORT,
+    password: envVars.REDIS_PASSWORD || undefined,
+    mock: envVars.REDIS_MOCK,
+    enabled: envVars.REDIS_ENABLED,
+  },
 };
 

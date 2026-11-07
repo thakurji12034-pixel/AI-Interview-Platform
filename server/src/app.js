@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const errorHandler = require('./middleware/errorHandler');
+const { isRedisHealthy } = require('./config/redis');
 
 const app = express();
 
@@ -31,12 +32,25 @@ app.get('/health/live', (_req, res) => {
 });
 
 app.get('/health/ready', async (_req, res) => {
-  try {
-    await sequelize.authenticate();
-    res.json({ status: 'ready', database: 'connected' });
-  } catch (err) {
-    res.status(503).json({ status: 'unhealthy', database: 'disconnected', error: err.message });
-  }
+  const dbHealthy = await sequelize
+    .authenticate()
+    .then(() => true)
+    .catch(() => false);
+  const redisHealthy = await isRedisHealthy();
+
+  const isReady = dbHealthy && redisHealthy;
+  const status = isReady ? 'ready' : 'unhealthy';
+  const statusCode = isReady ? 200 : 503;
+
+  res.status(statusCode).json({
+    status,
+    checks: {
+      database: dbHealthy ? 'connected' : 'disconnected',
+      redis: redisHealthy ? 'connected' : 'disconnected',
+    },
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.get('/api/health', (_req, res) => {
