@@ -11,12 +11,15 @@ const {
   me,
 } = require('../controllers/authController');
 
+const config = require('../config/env');
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 20,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   statusCode: 429,
+  skip: () => config.env === 'test',
   message: {
     error: {
       code: 'TOO_MANY_REQUESTS',
@@ -35,6 +38,7 @@ const generalLimiter = rateLimit({
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   statusCode: 429,
+  skip: () => config.env === 'test',
   message: {
     error: {
       code: 'TOO_MANY_REQUESTS',

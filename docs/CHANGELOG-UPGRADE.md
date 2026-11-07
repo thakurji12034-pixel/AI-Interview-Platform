@@ -59,3 +59,10 @@ Every dependency added to `server/` or `client/` must be recorded here with:
 | `client/src/context/AuthContext.jsx` | MODIFY | Translated Hinglish comments to professional English. | Client app | Phase 1a |
 | `client/src/pages/Dashboard.jsx` | MODIFY | Translated Hinglish comments to professional English. | Dashboard | Phase 1a |
 | `client/src/pages/Room.jsx` | MODIFY | Translated Hinglish comments to professional English. | Coding room | Phase 1a |
+| `server/jest.config.js` | ADD | Configured Jest runner with setup scripts, test timeout, and execution settings. | `server/package.json` | Phase 1b |
+| `server/tests/setup.js` | ADD | Test initialization with strict database safety guard (refuses to run unless DB ends in `_test`). | Test suites | Phase 1b |
+| `server/tests/auth.test.js` | ADD | 9 automated integration tests covering full authentication and token rotation flows. | Test runner | Phase 1b |
+| `server/tests/interview.test.js` | ADD | 18 automated integration tests covering interview scheduling, conflict checking, and state transitions. | Test runner | Phase 1b |
+| `server/tests/socket.test.js` | ADD | 11 automated real-time Socket.io tests on ephemeral port covering auth, syncing, boundaries, and reconnection. | Test runner | Phase 1b |
+| `server/src/routes/authRoutes.js` | MODIFY | Skipped rate limiting during `NODE_ENV=test` to prevent test runner throttling. | Auth endpoints | Phase 1b |
+| `server/package.json` | MODIFY | Added Jest test runner script and devDependencies (`jest`, `supertest`). | Test execution | Phase 1b |
