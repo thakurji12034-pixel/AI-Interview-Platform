@@ -38,6 +38,9 @@ docker compose exec db mysql -u interview_app -p"${DB_PASSWORD}" -e "SHOW TABLES
 
 # Verify row counts are preserved
 docker compose exec db mysql -u interview_app -p"${DB_PASSWORD}" -e "SELECT COUNT(*) FROM interview_platform.users; SELECT COUNT(*) FROM interview_platform.interviews;"
+
+# Verify Phase 5 submissions table
+docker compose exec db mysql -u interview_app -p"${DB_PASSWORD}" -e "DESCRIBE interview_platform.submissions;"
 ```
 
 ---

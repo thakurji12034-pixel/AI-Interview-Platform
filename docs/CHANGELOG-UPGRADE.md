@@ -193,5 +193,34 @@ No external production dependencies added in Phase 4 (implemented using core Seq
 | `server/tests/question.test.js` | ADD | 8 automated integration tests verifying CRUD, filters, randomized selection, assessment workflows, and candidate anti-leak regression scanner. | Test runner | Phase 4a |
 | `docs/verification/phase-4.md` | ADD | Comprehensive Phase 4 verification report with exact execution output and test counts. | Documentation | Phase 4b |
 
+---
+
+## Phase 5: Secure Code Execution
+
+### Dependency Additions (Justification Table)
+
+No external production dependencies added in Phase 5 (implemented using standard Node.js native fetch / HTTP communication, existing BullMQ queue worker infrastructure, and isolated sandbox mock providers).
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/migrations/004_code_execution_submissions.js` | ADD | Schema migration creating `submissions` table with execution statuses, resource metrics, and testResults JSON. | Umzug migrator | Phase 5a |
+| `server/src/models/Submission.js` | ADD | Sequelize model tracking code execution submissions, language, pass/fail counts, and normalized status. | Models index | Phase 5a |
+| `server/src/models/index.js` | MODIFY | Associated `Submission` with `User`, `Question`, and `Assessment`. | Application models | Phase 5a |
+| `server/src/services/execution/CodeExecutionProvider.js` | ADD | Abstract base interface for pluggable multi-language code execution engines. | Execution adapters | Phase 5a |
+| `server/src/services/execution/Judge0Adapter.js` | ADD | Production Judge0 API adapter with normalized status mapping, output truncation (10k chars), and network isolation. | Execution factory | Phase 5a |
+| `server/src/services/execution/MockExecutionProvider.js` | ADD | Deterministic sandbox execution mock for tests and offline development simulating all error statuses. | Execution factory | Phase 5a |
+| `server/src/services/execution/index.js` | ADD | Execution factory resolving active provider based on environment, with defined source/time/memory limits. | Submission service, worker | Phase 5a |
+| `server/src/services/submissionService.js` | ADD | Submission submission service enforcing 50k character limits, language validation, candidate anti-leak serialization, and BullMQ enqueuing. | Submission controller | Phase 5a |
+| `server/src/controllers/submissionController.js` | ADD | REST controller for code execution submissions and status polling. | Submission routes | Phase 5a |
+| `server/src/routes/submissionRoutes.js` | ADD | Express router mounted at `/api/v1/submissions` with authentication and rate limiting. | `server/src/app.js` | Phase 5a |
+| `server/src/worker.js` | MODIFY | Added `processCodeExecution` BullMQ consumer running test cases against execution provider and updating submissions. | Worker service | Phase 5a |
+| `server/src/config/env.js` | MODIFY | Added schema validation for Judge0 configuration variables (`JUDGE0_ENDPOINT`, `JUDGE0_API_KEY`). | Env config | Phase 5a |
+| `server/.env.example` | MODIFY | Documented Judge0 execution engine configuration variables. | Environment templates | Phase 5a |
+| `server/tests/execution.test.js` | ADD | 9 automated integration tests verifying language mappings, input length limits, execution transitions, status normalization, candidate privacy, and IDOR protection. | Test runner | Phase 5a |
+| `docs/verification/phase-5.md` | ADD | Comprehensive Phase 5 verification report with exact execution output and test counts. | Documentation | Phase 5b |
+
+
 
 
