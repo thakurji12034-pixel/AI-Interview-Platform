@@ -54,3 +54,4 @@ module.exports = {
   clientUrl: envVars.CLIENT_URL,
   allowDevInterviewerRegistration: envVars.ALLOW_DEV_INTERVIEWER_REGISTRATION,
 };
+

@@ -42,9 +42,12 @@ const run = async () => {
     console.error('Migration failed:', err);
     try {
       await sequelize.close();
-    } catch (_) {}
+    } catch (_err) {
+      // Ignored: connection might already be closed
+    }
     process.exit(1);
   }
 };
 
 run();
+

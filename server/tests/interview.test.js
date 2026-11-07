@@ -2,7 +2,6 @@ const request = require('supertest');
 const jwt = require('jsonwebtoken');
 const app = require('../src/app');
 const { User, Interview } = require('../src/models');
-const { addMinutes } = require('../src/services/interviewService');
 const config = require('../src/config/env');
 
 describe('Interview Management API (/api/v1/interviews)', () => {

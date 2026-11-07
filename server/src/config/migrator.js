@@ -31,3 +31,4 @@ module.exports = {
   createMigrator,
   migrator: createMigrator(),
 };
+

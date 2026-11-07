@@ -24,7 +24,8 @@ async function connectWithRetry() {
       );
       if (attempt === MAX_RETRIES) {
         throw new Error(
-          `Failed to connect to MySQL after ${MAX_RETRIES} attempts: ${err.message}`
+          `Failed to connect to MySQL after ${MAX_RETRIES} attempts: ${err.message}`,
+          { cause: err }
         );
       }
       logger.info(`Retrying database connection in ${RETRY_DELAY_MS / 1000}s...`);

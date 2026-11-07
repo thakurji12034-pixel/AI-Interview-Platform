@@ -71,3 +71,13 @@ Every dependency added to `server/` or `client/` must be recorded here with:
 | `server/src/scripts/migrate.js` | ADD | CLI runner for applying, reverting, and inspecting migration status. | `server/package.json` | Phase 1c |
 | `server/src/scripts/testMigrationSafe.js` | ADD | Migration safety verification suite tested on restored pre-intelliprep backup copy. | Test / Verification | Phase 1c |
 | `server/package.json` | MODIFY | Added `db:migrate`, `db:migrate:undo`, and `db:migrate:status` npm scripts. | Developer CLI | Phase 1c |
+| `server/Dockerfile` | MODIFY | Hardened container execution with non-root `USER node` and `/app` ownership. | Container security | Phase 1d |
+| `docker-compose.yml` | MODIFY | Added automated pending migration execution on container startup. | Orchestration | Phase 1d |
+| `.github/workflows/ci.yml` | ADD | GitHub Actions CI with TruffleHog secret scanning, lint, audit, MySQL service tests, and build. | CI/CD | Phase 1d |
+| `.github/workflows/deploy.yml` | ADD | Manual workflow_dispatch SSH deployment automation using repository secrets. | CI/CD | Phase 1d |
+| `.github/dependabot.yml` | ADD | Weekly automated dependency scanning configuration for server, client, and actions. | Security | Phase 1d |
+| `server/eslint.config.js` | ADD | Modern ESLint flat configuration for backend Node.js 22. | Code quality | Phase 1d |
+| `server/.env.example` | MODIFY | Documented dev interviewer registration override flag. | Configuration | Phase 1d |
+| `DEPLOY.md` | MODIFY | Documented `npm run user:create` CLI for production interviewer provisioning and `/health/*` probes. | Documentation | Phase 1d |
+| `README.md` | MODIFY | Updated API base path to `/api/v1`, documented migration and automated test execution. | Documentation | Phase 1d |
+| `docs/verification/phase-1.md` | ADD | Comprehensive Phase 1 verification report with exact execution output and test counts. | Documentation | Phase 1d |

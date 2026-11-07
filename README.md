@@ -104,11 +104,12 @@ Screenshots of the application in action are located under `docs/screenshots/`:
 
 ## REST API Reference
 
-Base path: `/api`
+Base path: `/api/v1` (with `/api` maintained for backwards-compatibility)
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `GET` | `/health` | Public | Service healthcheck (`{ status: "ok" }`) |
+| `GET` | `/health/live` | Public | Liveness probe (`{ status: "ok" }`) |
+| `GET` | `/health/ready` | Public | Readiness probe verifying database connectivity (`{ status: "ok", db: "connected" }`) |
 | `POST` | `/auth/register` | Public (Rate-limited: 20/15m) | Register a user (`name`, `email`, `password`, `role`) |
 | `POST` | `/auth/login` | Public (Rate-limited: 20/15m) | Authenticate user, returns access token, sets refresh cookie |
 | `POST` | `/auth/refresh` | Public / Cookie (Rate-limited: 200/15m) | Rotate refresh token and issue new access token |
@@ -187,9 +188,19 @@ JWT_SECRET=local_jwt_secret_min_32_characters_here
 JWT_REFRESH_SECRET=local_refresh_secret_min_32_characters_here
 ```
 
+Apply database migrations:
+```bash
+npm run db:migrate
+```
+
 Start the backend:
 ```bash
 npm run dev
+```
+
+To create an interviewer account locally:
+```bash
+npm run user:create -- --email interviewer@example.com --name "Lead Interviewer" --role interviewer
 ```
 
 ### 3. Frontend Configuration
@@ -201,13 +212,26 @@ npm run dev
 ```
 Open `http://localhost:5173` in your browser.
 
-### 4. Running Verification Tests
-With the server running locally:
+### 4. Running Automated Tests & Quality Checks
+Run backend automated integration test suites (Auth, Interview Management, Real-Time Sockets):
+```bash
+cd server
+npm test
+```
+The test suite automatically provisions an isolated database (`interview_platform_test`), verifies 38 end-to-end integration test cases, and asserts that production databases are protected.
+
+Run ESLint and production build validation:
+```bash
+cd server && npm run lint
+cd ../client && npm run lint && npm run build
+```
+
+Run real-time socket regression test script:
 ```bash
 cd server
 node scripts/socketTest.js
 ```
-All 11 verification checks should print `PASS`.
+All 11 verification checks will print `PASS`.
 
 ---
 

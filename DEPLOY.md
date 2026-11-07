@@ -147,12 +147,25 @@ docker compose logs -f db
 
 Verify backend health:
 ```bash
-curl -i http://localhost:5000/api/health
+curl -i http://localhost:5000/health/live
+curl -i http://localhost:5000/health/ready
 ```
 
 ---
 
-## 8. Application Update Flow
+## 8. Creating Initial Interviewer Accounts
+
+In production, public signup strictly provisions the `candidate` role. To create interviewer accounts securely without enabling public dev flags, execute the interactive user provisioning CLI inside the running server container:
+
+```bash
+docker compose exec server npm run user:create -- --email interviewer@example.com --name "Jane Lead" --role interviewer
+```
+
+You will be prompted to enter a password securely (hidden input, minimum 10 characters). The command is idempotent: if the user already exists, it safely updates their role and password without duplicating records.
+
+---
+
+## 9. Application Update Flow
 
 To deploy code updates with zero friction:
 
@@ -168,7 +181,7 @@ docker compose up -d --build
 
 ---
 
-## 9. Database Backup & Restore
+## 10. Database Backup & Restore
 
 ### Backup Database Volume
 Create a timestamped compressed SQL dump using `mysqldump`:
@@ -186,7 +199,7 @@ gunzip < backup_20261107_000000.sql.gz | docker compose exec -T db mysql -u inte
 
 ---
 
-## 10. Troubleshooting Reference
+## 11. Troubleshooting Reference
 
 | Symptom | Probable Cause | Diagnostic & Resolution Steps |
 |---|---|---|

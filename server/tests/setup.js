@@ -15,7 +15,7 @@ if (!targetDb || !targetDb.endsWith('_test') || targetDb === 'interview_platform
 
 const mysql = require('mysql2/promise');
 const sequelize = require('../src/config/db');
-const { User, Interview } = require('../src/models');
+require('../src/models');
 
 beforeAll(async () => {
   // Ensure the dedicated test database exists in MySQL
@@ -36,3 +36,4 @@ beforeAll(async () => {
 afterAll(async () => {
   await sequelize.close();
 });
+

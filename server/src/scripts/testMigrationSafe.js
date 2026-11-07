@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const mysql = require('mysql2/promise');
 const { Sequelize } = require('sequelize');
 const { createMigrator } = require('../config/migrator');
@@ -132,3 +131,4 @@ run().catch((err) => {
   console.error('[MIGRATION-TEST ERROR]', err);
   process.exit(1);
 });
+

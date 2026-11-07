@@ -1,0 +1,111 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, 'feature/*']
+  pull_request:
+    branches: [main, 'feature/*']
+
+jobs:
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog Secret Scanner
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+  lint-and-audit:
+    name: Lint, Audit & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Server ESLint check
+        working-directory: server
+        run: npm run lint
+
+      - name: Server security audit (high & critical threshold)
+        working-directory: server
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Client ESLint check
+        working-directory: client
+        run: npm run lint
+
+      - name: Client security audit (high & critical threshold)
+        working-directory: client
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Build client production bundle
+        working-directory: client
+        run: npm run build
+
+  test-backend:
+    name: Backend Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root_test_password
+          MYSQL_DATABASE: interview_platform_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Run automated test suites (Auth, Interview, Sockets)
+        working-directory: server
+        env:
+          NODE_ENV: test
+          DB_HOST: 127.0.0.1
+          DB_NAME: interview_platform_test
+          DB_USER: root
+          DB_PASS: root_test_password
+          JWT_SECRET: ci_test_jwt_access_secret_minimum_32_characters_long
+          JWT_REFRESH_SECRET: ci_test_jwt_refresh_secret_minimum_32_characters_long
+          ALLOW_DEV_INTERVIEWER_REGISTRATION: "false"
+        run: npm test
+

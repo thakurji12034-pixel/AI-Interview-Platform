@@ -33,3 +33,4 @@ const httpLogger = pinoHttp({
 });
 
 module.exports = { logger, httpLogger };
+

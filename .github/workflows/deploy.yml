@@ -1,0 +1,44 @@
+name: Production Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      branch:
+        description: 'Git branch or tag to deploy'
+        required: true
+        default: 'main'
+
+jobs:
+  deploy:
+    name: Deploy to Cloud VM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger SSH deployment
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            echo "Deploying branch ${{ inputs.branch }} to ${{ inputs.target_env }}..."
+            cd /opt/intelliprep
+            git fetch --all
+            git checkout ${{ inputs.branch }}
+            git pull origin ${{ inputs.branch }}
+            docker compose build
+            docker compose up -d
+            echo "Waiting for services to become healthy..."
+            sleep 10
+            docker compose ps
+            echo "Deployment successfully executed."
+
