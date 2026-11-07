@@ -276,3 +276,60 @@ No external production dependencies added in Phase 5 (implemented using standard
 
 
 
+
+---
+
+## Phase 7: AI Answer Evaluation & Reports
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/migrations/006_evaluations_and_reports.js` | ADD | Schema migration creating `evaluations`, `evaluation_overrides`, and `interview_reports` tables with indexes. | Umzug migrator | Phase 7a |
+| `server/src/models/Evaluation.js` | ADD | Sequelize model storing AI rubric evaluations across 5 dimensions, raw JSON, and advisory disclaimers. | Models index | Phase 7a |
+| `server/src/models/EvaluationOverride.js` | ADD | Sequelize model storing human interviewer evaluation overrides and notes with audit preservation. | Models index | Phase 7a |
+| `server/src/models/InterviewReport.js` | ADD | Sequelize model storing holistic interview reports synthesizing AI scores with verified code execution facts and telemetry timings. | Models index | Phase 7a |
+| `server/src/models/index.js` | MODIFY | Linked Evaluation, EvaluationOverride, and InterviewReport into relational associations. | Application models | Phase 7a |
+| `server/src/ai/prompts/answerEvaluationPrompt.js` | ADD | Versioned answer evaluation prompt template (v1.0) defining 5 rubric dimensions and score constraints. | AI manager | Phase 7a |
+| `server/src/services/evaluationService.js` | ADD | Evaluation generation with server-authoritative weighting, advisory disclaimer enforcement, human override management, and verified telemetry report synthesis. | Controllers, worker | Phase 7a |
+| `server/src/controllers/evaluationController.js` | ADD | REST controller handling async evaluation triggers, retrieval, and interviewer overrides. | Evaluation routes | Phase 7a |
+| `server/src/routes/evaluationRoutes.js` | ADD | Express router mounted at `/api/v1/evaluations` with RBAC permissions. | `server/src/app.js` | Phase 7a |
+| `server/src/controllers/reportController.js` | ADD | REST controller handling interview report generation and session report retrieval. | Report routes | Phase 7a |
+| `server/src/routes/reportRoutes.js` | ADD | Express router mounted at `/api/v1/reports`. | `server/src/app.js` | Phase 7a |
+| `server/src/worker.js` | MODIFY | Added `processAiEvaluation` queue consumer calling `evaluationService.processAnswerEvaluation`. | Worker runner | Phase 7a |
+| `server/tests/evaluation.test.js` | ADD | 8 automated integration tests verifying server-authoritative score weighting, async evaluations, human overrides, disclaimer presence, telemetry synthesis, and IDOR protection. | Test runner | Phase 7a |
+| `docs/verification/phase-7.md` | ADD | Comprehensive Phase 7 verification report with exact execution output and test counts. | Documentation | Phase 7b |
+
+---
+
+## Phase 8: Yjs Collaborative Editor & Snapshots
+
+### Dependency Additions (Justification Table)
+
+| Package | Version | Purpose | License | Maintenance Status | Audit Result |
+|---|---|---|---|---|---|
+| `yjs` (server & client) | ^13.6.33 | High-performance Conflict-free Replicated Data Type (CRDT) engine for real-time document synchronization. | MIT | Actively maintained, >1.5M weekly downloads | 0 high/critical vulnerabilities |
+| `y-monaco` (client) | ^0.1.6 | Direct binding syncing Yjs text types with Monaco Editor models and remote cursors. | MIT | Maintained by Yjs ecosystem | 0 vulnerabilities |
+| `monaco-editor` (client) | ^0.57.0 | Self-hosted Monaco core editor bundled locally to enforce strict CSP without external CDNs. | MIT | Microsoft official release | 0 vulnerabilities |
+| `y-protocols` (client) | ^1.0.6 | Binary awareness and synchronization protocols for remote collaborative awareness states. | MIT | Maintained by Yjs ecosystem | 0 vulnerabilities |
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/migrations/007_collaborative_editor_snapshots.js` | ADD | Schema migration creating `code_snapshots` and `room_sessions` tables with indexes. | Umzug migrator | Phase 8a |
+| `server/src/models/CodeSnapshot.js` | ADD | Sequelize model managing persistent code snapshot history, versions, and raw Yjs update BLOBs. | Models index | Phase 8a |
+| `server/src/models/RoomSession.js` | ADD | Sequelize model logging room join and departure events and duration metrics. | Models index | Phase 8a |
+| `server/src/models/index.js` | MODIFY | Linked CodeSnapshot and RoomSession with Interview and User models. | Application models | Phase 8a |
+| `server/src/config/env.js` | MODIFY | Added `COLLAB_ENGINE` feature flag (legacy vs yjs). | Env config | Phase 8a |
+| `server/.env.example` | MODIFY | Documented `COLLAB_ENGINE` configuration flag. | Environment templates | Phase 8a |
+| `server/src/sockets/roomStore.js` | ADD | Centralized in-memory Y.Doc room store with debounced snapshot persistence, session tracking, and rate limiting. | Socket layer | Phase 8a |
+| `server/src/sockets/yjsHandler.js` | ADD | Yjs Socket.io transport layer supporting 2-step sync, CRDT updates, awareness relay, observer protection, and legacy event interop. | Socket layer | Phase 8a |
+| `server/src/sockets/index.js` | MODIFY | Delegated socket initialization to `initYjsSockets` or legacy engine based on feature flag. | Server entry | Phase 8a |
+| `server/src/controllers/interviewController.js` | MODIFY | Added endpoints for snapshot retrieval, manual capture, completion snapshot saves, and room sessions timeline. | Interview routes | Phase 8a |
+| `server/src/routes/interviewRoutes.js` | MODIFY | Mounted routes `/api/v1/interviews/:id/snapshots` and `/api/v1/interviews/:id/room-sessions`. | `server/src/app.js` | Phase 8a |
+| `client/src/config/monaco.js` | ADD | Local Monaco configuration binding `loader.config({ monaco })` for CDN-free offline editor loading. | Client app | Phase 8a |
+| `client/src/pages/Room.jsx` | MODIFY | Replaced last-write-wins with Yjs `MonacoBinding`, added observer read-only enforcement, snapshot timeline drawer, and manual snapshot trigger. | Coding room | Phase 8a |
+| `client/vite.config.js` | MODIFY | Added module alias resolving Monaco internal paths for Rolldown bundler compatibility. | Build pipeline | Phase 8a |
+| `server/tests/collab.test.js` | ADD | 13 automated integration tests verifying handshake auth, Yjs sync, CRDT convergence, language sync, observer restrictions, debounced snapshots, and room session telemetry. | Test runner | Phase 8a |
+| `docs/verification/phase-8.md` | ADD | Comprehensive Phase 8 verification report with exact execution output and test counts. | Documentation | Phase 8b |

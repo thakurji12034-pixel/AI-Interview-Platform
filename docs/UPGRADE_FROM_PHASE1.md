@@ -47,6 +47,9 @@ docker compose exec db mysql -u interview_app -p"${DB_PASSWORD}" -e "DESCRIBE in
 
 # Verify Phase 7 evaluation & report tables
 docker compose exec db mysql -u interview_app -p"${DB_PASSWORD}" -e "DESCRIBE interview_platform.evaluations; DESCRIBE interview_platform.evaluation_overrides; DESCRIBE interview_platform.interview_reports;"
+
+# Verify Phase 8 collaborative snapshots & room session tables
+docker compose exec db mysql -u interview_app -p"${DB_PASSWORD}" -e "DESCRIBE interview_platform.code_snapshots; DESCRIBE interview_platform.room_sessions;"
 ```
 
 ---
