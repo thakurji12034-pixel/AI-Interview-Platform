@@ -221,6 +221,58 @@ No external production dependencies added in Phase 5 (implemented using standard
 | `server/tests/execution.test.js` | ADD | 9 automated integration tests verifying language mappings, input length limits, execution transitions, status normalization, candidate privacy, and IDOR protection. | Test runner | Phase 5a |
 | `docs/verification/phase-5.md` | ADD | Comprehensive Phase 5 verification report with exact execution output and test counts. | Documentation | Phase 5b |
 
+---
+
+## Phase 6: AI Engine & Resume Intelligence
+
+### Dependency Additions (Justification Table)
+
+| Package | Version | Purpose | License | Maintenance Status | Audit Result |
+|---|---|---|---|---|---|
+| `@google/genai` | ^3.0.0 | Official Google Gen AI SDK for Node.js powering Gemini models. | Apache-2.0 | Actively maintained by Google | 0 high/critical vulnerabilities |
+| `multer` | ^2.5.0 | Express multipart/form-data middleware handling secure binary resume file uploads. | MIT | Actively maintained | 0 high/critical vulnerabilities |
+| `unpdf` | ^2.1.0 | Universal, zero-dependency PDF text extraction library built on PDF.js. | MIT | Actively maintained by unjs | 0 high/critical vulnerabilities |
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/migrations/005_ai_engine_and_resumes.js` | ADD | Schema migration creating `ai_usage`, `interview_sessions`, `session_questions`, `answers`, `resumes`, and `candidate_skills` tables with indexes. | Umzug migrator | Phase 6a |
+| `server/src/models/AiUsage.js` | ADD | Sequelize model tracking AI token usage, latency, purpose, model, and operational status. | Models index | Phase 6a |
+| `server/src/models/InterviewSession.js` | ADD | Sequelize model managing timed interview sessions, difficulty, score, and summary. | Models index | Phase 6a |
+| `server/src/models/SessionQuestion.js` | ADD | Sequelize model tracking ordered session questions and adaptive follow-up hierarchy. | Models index | Phase 6a |
+| `server/src/models/Answer.js` | ADD | Sequelize model storing candidate answers, code submissions, and timing. | Models index | Phase 6a |
+| `server/src/models/Resume.js` | ADD | Sequelize model managing resume metadata, storage pointers, and parsed JSON profiles. | Models index | Phase 6a |
+| `server/src/models/CandidateSkill.js` | ADD | Sequelize model maintaining candidate skill profiles, categories, proficiency, and verification status. | Models index | Phase 6a |
+| `server/src/models/index.js` | MODIFY | Associated all Phase 6 models with User and Question relational graphs. | Application models | Phase 6a |
+| `server/src/ai/AiProvider.js` | ADD | Abstract interface definition for pluggable AI generation engines. | Adapters | Phase 6a |
+| `server/src/ai/GeminiAdapter.js` | ADD | Official Google Gen AI SDK adapter with request timeouts, structured JSON parsing, and token tracking. | AI factory | Phase 6a |
+| `server/src/ai/MockAiProvider.js` | ADD | Deterministic AI sandbox mock with prompt-injection resilience for offline testing. | AI factory | Phase 6a |
+| `server/src/ai/index.js` | ADD | AI manager with circuit breaker, response caching, fallback orchestration, and usage logging. | Services | Phase 6a |
+| `server/src/ai/prompts/technicalQuestionPrompt.js` | ADD | Versioned technical question prompt template (v1.0) with candidate input safety delimiters. | AI manager | Phase 6a |
+| `server/src/ai/prompts/behavioralQuestionPrompt.js` | ADD | Versioned behavioral question prompt template (v1.0) implementing STAR methodology. | AI manager | Phase 6a |
+| `server/src/ai/prompts/followUpQuestionPrompt.js` | ADD | Versioned adaptive follow-up prompt template (v1.0) probing candidate response depth. | AI manager | Phase 6a |
+| `server/src/ai/prompts/sessionSummaryPrompt.js` | ADD | Versioned holistic session evaluation prompt template (v1.0) generating scores and recommendations. | AI manager | Phase 6a |
+| `server/src/ai/prompts/resumeExtractionPrompt.js` | ADD | Versioned resume extraction prompt template (v1.0) extracting structured talent data. | Resume service | Phase 6a |
+| `server/src/services/storage/StorageProvider.js` | ADD | Abstract storage provider interface for candidate document assets. | Storage implementations | Phase 6a |
+| `server/src/services/storage/LocalStorageProvider.js` | ADD | Local filesystem storage implementation storing resumes in isolated directory outside web root. | Storage factory | Phase 6a |
+| `server/src/services/storage/index.js` | ADD | Storage provider singleton resolver. | Resume service | Phase 6a |
+| `server/src/services/skillTaxonomy.js` | ADD | Canonical technical skill taxonomy and normalization dictionary. | Resume service | Phase 6a |
+| `server/src/services/resumeService.js` | ADD | Resume upload validation, magic byte (%PDF-) verification, unpdf extraction, taxonomy normalization, job matching, and privacy deletion. | Resume controller, worker | Phase 6a |
+| `server/src/services/sessionService.js` | ADD | Session configuration, server-authoritative timers, answer submission, adaptive follow-ups, and holistic completion. | Session controller | Phase 6a |
+| `server/src/controllers/resumeController.js` | ADD | REST controller for resume uploads, retrieval, deletion, and job description matching. | Resume routes | Phase 6a |
+| `server/src/routes/resumeRoutes.js` | ADD | Express router mounted at `/api/v1/resumes` with Multer 5MB limits and auth protection. | `server/src/app.js` | Phase 6a |
+| `server/src/controllers/sessionController.js` | ADD | REST controller for interview session lifecycle and adaptive answers. | Session routes | Phase 6a |
+| `server/src/routes/sessionRoutes.js` | ADD | Express router mounted at `/api/v1/sessions`. | `server/src/app.js` | Phase 6a |
+| `server/src/worker.js` | MODIFY | Added `processResumeParsing` BullMQ consumer calling `resumeService.processResumeParsing`. | Worker runner | Phase 6a |
+| `server/src/config/env.js` | MODIFY | Added schema validation for Gemini variables (`GEMINI_API_KEY`, `GEMINI_MODEL`, `AI_MOCK_MODE`). | Env config | Phase 6a |
+| `server/.env.example` | MODIFY | Documented AI engine configuration variables. | Environment templates | Phase 6a |
+| `.gitignore` | MODIFY | Excluded physical `/server/storage/` folder while preserving `.gitkeep`. | Git tracking | Phase 6a |
+| `server/tests/ai.test.js` | ADD | 8 automated integration tests verifying prompt security, AI manager usage logging, session lifecycle, timer expiry, adaptive follow-ups, and IDOR protection. | Test runner | Phase 6a |
+| `server/tests/resume.test.js` | ADD | 7 automated integration tests verifying %PDF- magic bytes, upload validation, background extraction, taxonomy normalization, job matching, deletion privacy, and IDOR protection. | Test runner | Phase 6a |
+| `docs/verification/phase-6.md` | ADD | Comprehensive Phase 6 verification report with exact execution output and test counts. | Documentation | Phase 6b |
+
+
 
 
 

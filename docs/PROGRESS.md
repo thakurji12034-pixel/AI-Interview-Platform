@@ -8,7 +8,7 @@
 | **Phase 3** | Redis & Background Job Infrastructure | **Done** | 2026-11-07T15:56:00+05:30 | 61 / 61 | [`docs/verification/phase-3.md`](file:///d:/ai-interview-platform/docs/verification/phase-3.md) | Redis client with in-memory mock fallback, cache service, BullMQ queues, worker runner, dual health probe |
 | **Phase 4** | Question Bank, Templates & Assessments | **Done** | 2026-11-07T16:10:00+05:30 | 69 / 69 | [`docs/verification/phase-4.md`](file:///d:/ai-interview-platform/docs/verification/phase-4.md) | Questions/templates/assessments schema, starter seeds across 10 domains, anti-leak serializer, regression scanner |
 | **Phase 5** | Secure Code Execution | **Done** | 2026-11-07T16:25:00+05:30 | 78 / 78 | [`docs/verification/phase-5.md`](file:///d:/ai-interview-platform/docs/verification/phase-5.md) | Pluggable Judge0/Mock execution engine, BullMQ submission pipeline, candidate anti-leak data protection |
-| **Phase 6** | AI Engine & Resume Intelligence | **Not started** | - | - | `docs/verification/phase-6.md` | Modules A & C |
+| **Phase 6** | AI Engine & Resume Intelligence | **Done** | 2026-11-07T16:51:00+05:30 | 93 / 93 | [`docs/verification/phase-6.md`](file:///d:/ai-interview-platform/docs/verification/phase-6.md) | Gemini SDK adapter with circuit breaker, prompt injection safety tags, server-authoritative sessions, and resume parsing with taxonomy normalization |
 | **Phase 7** | AI Answer Evaluation & Reports | **Not started** | - | - | `docs/verification/phase-7.md` | Module B |
 | **Phase 8** | Yjs Collaborative Editor & Snapshots | **Not started** | - | - | `docs/verification/phase-8.md` | Module D |
 | **Phase 9** | Role-Scoped Analytics & Charts | **Not started** | - | - | `docs/verification/phase-9.md` | Module H |
