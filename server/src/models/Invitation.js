@@ -40,3 +40,4 @@ const Invitation = sequelize.define(
 );
 
 module.exports = Invitation;
+

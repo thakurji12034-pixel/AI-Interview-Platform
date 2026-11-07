@@ -16,7 +16,11 @@ module.exports = (req, res, next) => {
     const payload = jwt.verify(token, config.jwt.secret, {
       algorithms: [config.jwt.algorithm],
     });
-    req.user = { id: payload.id, role: payload.role };
+    req.user = {
+      id: payload.id,
+      role: payload.role,
+      isActive: payload.isActive !== false,
+    };
     next();
   } catch (_err) {
     return res.status(401).json({

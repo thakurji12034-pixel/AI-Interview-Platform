@@ -11,3 +11,4 @@ execSync(`mysqldump -h ${config.db.host} -u ${config.db.user} ${passArg} ${confi
 });
 
 console.log(`Backup completed successfully: ${targetFile}`);
+

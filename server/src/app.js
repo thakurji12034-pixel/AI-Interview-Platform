@@ -7,6 +7,7 @@ const { httpLogger } = require('./utils/logger');
 const sequelize = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -45,10 +46,12 @@ app.get('/api/health', (_req, res) => {
 // Versioned API routes (/api/v1)
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/interviews', interviewRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // Temporary backward compatibility aliases (/api/*)
 app.use('/api/auth', authRoutes);
 app.use('/api/interviews', interviewRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use(errorHandler);
 

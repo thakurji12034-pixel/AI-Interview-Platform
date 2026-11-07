@@ -13,3 +13,4 @@ const PlatformSetting = sequelize.define(
 );
 
 module.exports = PlatformSetting;
+

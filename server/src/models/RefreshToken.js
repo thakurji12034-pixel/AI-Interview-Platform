@@ -40,3 +40,4 @@ const RefreshToken = sequelize.define(
 );
 
 module.exports = RefreshToken;
+

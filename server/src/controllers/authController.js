@@ -1,8 +1,14 @@
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const RefreshToken = require('../models/RefreshToken');
 const config = require('../config/env');
+const {
+  issueTokenFamily,
+  rotateRefreshToken,
+  redeemInvitation,
+  hashToken,
+} = require('../services/authService');
+const { logAudit } = require('../services/auditService');
 
 const COOKIE_PATH = '/api/auth';
 const COOKIE_PATH_V1 = '/api/v1/auth';
@@ -15,51 +21,37 @@ const cookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
-const hashToken = (token) =>
-  crypto.createHash('sha256').update(token).digest('hex');
+const setAuthCookies = (res, refreshToken) => {
+  res.cookie('refreshToken', refreshToken, cookieOptions);
+  res.cookie('refreshToken', refreshToken, { ...cookieOptions, path: COOKIE_PATH_V1 });
+};
 
-const signAccessToken = (user) =>
-  jwt.sign({ id: user.id, role: user.role }, config.jwt.secret, {
-    expiresIn: config.jwt.accessExpiresIn,
-    algorithm: config.jwt.algorithm,
-  });
-
-const signRefreshToken = (user) =>
-  jwt.sign({ id: user.id }, config.jwt.refreshSecret, {
-    expiresIn: config.jwt.refreshExpiresIn,
-    algorithm: config.jwt.algorithm,
-  });
+const clearAuthCookies = (res) => {
+  res.clearCookie('refreshToken', { path: COOKIE_PATH });
+  res.clearCookie('refreshToken', { path: COOKIE_PATH_V1 });
+};
 
 const publicUser = (user) => ({
   id: user.id,
   name: user.name,
   email: user.email,
   role: user.role,
+  isActive: user.isActive !== false,
 });
-
-/**
- * Issues fresh access and refresh token pair, persisting the hashed refresh token in the database.
- */
-const issueTokens = async (user, res) => {
-  const accessToken = signAccessToken(user);
-  const refreshToken = signRefreshToken(user);
-
-  user.refreshToken = hashToken(refreshToken);
-  await user.save();
-
-  // Set cookie for both legacy /api/auth and versioned /api/v1/auth path compatibility
-  res.cookie('refreshToken', refreshToken, cookieOptions);
-  res.cookie('refreshToken', refreshToken, { ...cookieOptions, path: COOKIE_PATH_V1 });
-  return accessToken;
-};
 
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, inviteToken } = req.body;
     let role = req.body.role || 'candidate';
+    let invitation = null;
 
-    // Public signup strictly defaults to candidate unless dev override is enabled in non-production
-    if (role !== 'candidate' && (!config.allowDevInterviewerRegistration || config.env === 'production')) {
+    if (inviteToken) {
+      invitation = await redeemInvitation(inviteToken, email);
+      role = invitation.role;
+    } else if (
+      role !== 'candidate' &&
+      (!config.allowDevInterviewerRegistration || config.env === 'production')
+    ) {
       role = 'candidate';
     }
 
@@ -72,9 +64,35 @@ exports.register = async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, passwordHash, role });
+    const user = await User.create({ name, email, passwordHash, role, isActive: true });
 
-    res.status(201).json({ user: publicUser(user) });
+    if (invitation) {
+      invitation.usedAt = new Date();
+      await invitation.save();
+
+      await logAudit({
+        actorId: user.id,
+        action: 'INVITATION_REDEEMED',
+        targetType: 'Invitation',
+        targetId: String(invitation.id),
+        ipAddress: req.ip || null,
+        metadata: { role, email },
+      });
+    }
+
+    const { accessToken, refreshToken } = await issueTokenFamily(user, req);
+    setAuthCookies(res, refreshToken);
+
+    await logAudit({
+      actorId: user.id,
+      action: 'USER_REGISTERED',
+      targetType: 'User',
+      targetId: String(user.id),
+      ipAddress: req.ip || null,
+      metadata: { role },
+    });
+
+    res.status(201).json({ user: publicUser(user), accessToken });
   } catch (err) {
     next(err);
   }
@@ -87,7 +105,6 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ where: { email } });
     const ok = user && (await bcrypt.compare(password, user.passwordHash));
 
-    // Identical error message prevents account enumeration
     if (!ok) {
       return res.status(401).json({
         error: { code: 'UNAUTHORIZED', message: 'Invalid email or password' },
@@ -95,7 +112,27 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    const accessToken = await issueTokens(user, res);
+    if (user.isActive === false) {
+      return res.status(403).json({
+        error: {
+          code: 'ACCOUNT_DEACTIVATED',
+          message: 'Your account has been deactivated. Please contact an administrator.',
+        },
+        message: 'Your account has been deactivated. Please contact an administrator.',
+      });
+    }
+
+    const { accessToken, refreshToken } = await issueTokenFamily(user, req);
+    setAuthCookies(res, refreshToken);
+
+    await logAudit({
+      actorId: user.id,
+      action: 'USER_LOGIN',
+      targetType: 'User',
+      targetId: String(user.id),
+      ipAddress: req.ip || null,
+    });
+
     res.json({ accessToken, user: publicUser(user) });
   } catch (err) {
     next(err);
@@ -112,28 +149,9 @@ exports.refresh = async (req, res, next) => {
       });
     }
 
-    let payload;
-    try {
-      payload = jwt.verify(token, config.jwt.refreshSecret, {
-        algorithms: [config.jwt.algorithm],
-      });
-    } catch (_err) {
-      return res.status(401).json({
-        error: { code: 'UNAUTHORIZED', message: 'Invalid or expired refresh token' },
-        message: 'Invalid or expired refresh token',
-      });
-    }
+    const { accessToken, refreshToken } = await rotateRefreshToken(token, req);
+    setAuthCookies(res, refreshToken);
 
-    const user = await User.findByPk(payload.id);
-    if (!user || user.refreshToken !== hashToken(token)) {
-      return res.status(401).json({
-        error: { code: 'UNAUTHORIZED', message: 'Refresh token is no longer valid' },
-        message: 'Refresh token is no longer valid',
-      });
-    }
-
-    // Refresh token rotation: consume old token and issue fresh pair
-    const accessToken = await issueTokens(user, res);
     res.json({ accessToken });
   } catch (err) {
     next(err);
@@ -145,18 +163,15 @@ exports.logout = async (req, res, next) => {
     const token = req.cookies.refreshToken;
 
     if (token) {
-      try {
-        const payload = jwt.verify(token, config.jwt.refreshSecret, {
-          algorithms: [config.jwt.algorithm],
-        });
-        await User.update({ refreshToken: null }, { where: { id: payload.id } });
-      } catch (_err) {
-        // Token was already invalid; clearing cookies is sufficient
-      }
+      const tokenHash = hashToken(token);
+      await RefreshToken.update(
+        { revokedAt: new Date() },
+        { where: { tokenHash, revokedAt: null } }
+      );
+      await User.update({ refreshToken: null }, { where: { refreshToken: tokenHash } });
     }
 
-    res.clearCookie('refreshToken', { path: COOKIE_PATH });
-    res.clearCookie('refreshToken', { path: COOKIE_PATH_V1 });
+    clearAuthCookies(res);
     res.json({ message: 'Logged out' });
   } catch (err) {
     next(err);

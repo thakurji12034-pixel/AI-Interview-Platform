@@ -17,3 +17,4 @@ const AuditLog = sequelize.define(
 );
 
 module.exports = AuditLog;
+

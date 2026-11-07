@@ -260,3 +260,4 @@ module.exports = {
     await sequelize.query("ALTER TABLE users MODIFY COLUMN role ENUM('candidate', 'interviewer') NOT NULL DEFAULT 'candidate';");
   },
 };
+
