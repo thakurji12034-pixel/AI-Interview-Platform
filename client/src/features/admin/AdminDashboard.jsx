@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { SkeletonLoader } from '../../components/ui/SkeletonLoader';
 import { useToast } from '../../context/useToast';
+import { PlatformThroughputChart } from '../../components/analytics/PlatformThroughputChart';
 import {
   Plus,
   Copy,
@@ -16,6 +17,7 @@ export const AdminDashboard = ({ activeTab = 'overview' }) => {
   const [users, setUsers] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [userSearch, setUserSearch] = useState('');
@@ -26,21 +28,34 @@ export const AdminDashboard = ({ activeTab = 'overview' }) => {
 
   const loadData = useCallback(async () => {
     try {
-      if (activeTab === 'users' || activeTab === 'overview') {
-        const res = await http.get('/admin/users?limit=50');
-        setUsers(res.data.users || []);
-      }
-      if (activeTab === 'invitations' || activeTab === 'overview') {
-        const res = await http.get('/admin/invitations?limit=50');
-        setInvitations(res.data.invitations || []);
-      }
-      if (activeTab === 'audit-logs' || activeTab === 'overview') {
-        const res = await http.get('/admin/audit-logs?limit=50');
-        setAuditLogs(res.data.auditLogs || []);
-      }
-      if (activeTab === 'settings') {
-        const res = await http.get('/admin/settings');
-        setSettings(res.data.settings || {});
+      if (activeTab === 'overview') {
+        const [usersRes, invitesRes, auditRes, analyticsRes] = await Promise.allSettled([
+          http.get('/admin/users?limit=50'),
+          http.get('/admin/invitations?limit=50'),
+          http.get('/admin/audit-logs?limit=50'),
+          http.get('/analytics/admin'),
+        ]);
+        if (usersRes.status === 'fulfilled') setUsers(usersRes.value.data.users || []);
+        if (invitesRes.status === 'fulfilled') setInvitations(invitesRes.value.data.invitations || []);
+        if (auditRes.status === 'fulfilled') setAuditLogs(auditRes.value.data.auditLogs || []);
+        if (analyticsRes.status === 'fulfilled') setAnalytics(analyticsRes.value.data.analytics || null);
+      } else {
+        if (activeTab === 'users') {
+          const res = await http.get('/admin/users?limit=50');
+          setUsers(res.data.users || []);
+        }
+        if (activeTab === 'invitations') {
+          const res = await http.get('/admin/invitations?limit=50');
+          setInvitations(res.data.invitations || []);
+        }
+        if (activeTab === 'audit-logs') {
+          const res = await http.get('/admin/audit-logs?limit=50');
+          setAuditLogs(res.data.auditLogs || []);
+        }
+        if (activeTab === 'settings') {
+          const res = await http.get('/admin/settings');
+          setSettings(res.data.settings || {});
+        }
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to fetch admin data');
@@ -151,6 +166,8 @@ export const AdminDashboard = ({ activeTab = 'overview' }) => {
               <p className="text-2xl font-bold mt-1">{auditLogs.length}</p>
             </div>
           </div>
+
+          <PlatformThroughputChart analytics={analytics} />
 
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
             <h3 className="font-semibold text-sm mb-3">Recent Security & Administrative Actions</h3>

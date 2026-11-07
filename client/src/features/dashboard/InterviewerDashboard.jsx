@@ -7,6 +7,8 @@ import { Modal } from '../../components/ui/Modal';
 import { SkeletonLoader } from '../../components/ui/SkeletonLoader';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useToast } from '../../context/useToast';
+import { ScoreDistributionChart } from '../../components/analytics/ScoreDistributionChart';
+import { RubricAveragesChart } from '../../components/analytics/RubricAveragesChart';
 import {
   Calendar,
   Clock,
@@ -19,6 +21,7 @@ import {
 
 export const InterviewerDashboard = () => {
   const [interviews, setInterviews] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
@@ -36,8 +39,16 @@ export const InterviewerDashboard = () => {
   const fetchInterviews = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await http.get('/interviews');
-      setInterviews(res.data.interviews || []);
+      const [resInterviews, resAnalytics] = await Promise.allSettled([
+        http.get('/interviews'),
+        http.get('/analytics/interviewer'),
+      ]);
+      if (resInterviews.status === 'fulfilled') {
+        setInterviews(resInterviews.value.data.interviews || []);
+      }
+      if (resAnalytics.status === 'fulfilled') {
+        setAnalytics(resAnalytics.value.data.analytics || null);
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load interviews');
     } finally {
@@ -49,10 +60,20 @@ export const InterviewerDashboard = () => {
     let active = true;
     (async () => {
       try {
-        const res = await http.get('/interviews');
-        if (active) setInterviews(res.data.interviews || []);
+        const [resInterviews, resAnalytics] = await Promise.allSettled([
+          http.get('/interviews'),
+          http.get('/analytics/interviewer'),
+        ]);
+        if (active) {
+          if (resInterviews.status === 'fulfilled') {
+            setInterviews(resInterviews.value.data.interviews || []);
+          }
+          if (resAnalytics.status === 'fulfilled') {
+            setAnalytics(resAnalytics.value.data.analytics || null);
+          }
+        }
       } catch (err) {
-        if (active) toast.error(err.response?.data?.message || 'Failed to load interviews');
+        if (active) toast.error(err.response?.data?.message || 'Failed to load dashboard data');
       } finally {
         if (active) setLoading(false);
       }
@@ -145,6 +166,12 @@ export const InterviewerDashboard = () => {
           <p className="text-xs text-emerald-500 font-medium">Completed</p>
           <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">{stats.completed}</p>
         </div>
+      </div>
+
+      {/* Visual Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <ScoreDistributionChart distribution={analytics?.scoreDistribution || {}} />
+        <RubricAveragesChart rubricAverages={analytics?.rubricAverages || {}} />
       </div>
 
       {/* Filter Tabs */}

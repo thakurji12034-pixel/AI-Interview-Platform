@@ -7,9 +7,12 @@ import { SkeletonLoader } from '../../components/ui/SkeletonLoader';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useToast } from '../../context/useToast';
 import { Calendar, Clock, Video, XCircle } from 'lucide-react';
+import { ScoreProgressionChart } from '../../components/analytics/ScoreProgressionChart';
+import { SkillRadarChart } from '../../components/analytics/SkillRadarChart';
 
 export const CandidateDashboard = () => {
   const [interviews, setInterviews] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const navigate = useNavigate();
@@ -18,8 +21,16 @@ export const CandidateDashboard = () => {
   const fetchInterviews = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await http.get('/interviews');
-      setInterviews(res.data.interviews || []);
+      const [resInterviews, resAnalytics] = await Promise.allSettled([
+        http.get('/interviews'),
+        http.get('/analytics/candidate'),
+      ]);
+      if (resInterviews.status === 'fulfilled') {
+        setInterviews(resInterviews.value.data.interviews || []);
+      }
+      if (resAnalytics.status === 'fulfilled') {
+        setAnalytics(resAnalytics.value.data.analytics || null);
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load interviews');
     } finally {
@@ -31,10 +42,20 @@ export const CandidateDashboard = () => {
     let active = true;
     (async () => {
       try {
-        const res = await http.get('/interviews');
-        if (active) setInterviews(res.data.interviews || []);
+        const [resInterviews, resAnalytics] = await Promise.allSettled([
+          http.get('/interviews'),
+          http.get('/analytics/candidate'),
+        ]);
+        if (active) {
+          if (resInterviews.status === 'fulfilled') {
+            setInterviews(resInterviews.value.data.interviews || []);
+          }
+          if (resAnalytics.status === 'fulfilled') {
+            setAnalytics(resAnalytics.value.data.analytics || null);
+          }
+        }
       } catch (err) {
-        if (active) toast.error(err.response?.data?.message || 'Failed to load interviews');
+        if (active) toast.error(err.response?.data?.message || 'Failed to load dashboard data');
       } finally {
         if (active) setLoading(false);
       }
@@ -87,6 +108,12 @@ export const CandidateDashboard = () => {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Visual Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <ScoreProgressionChart data={analytics?.scoreHistory || []} />
+        <SkillRadarChart skills={analytics?.skillProfile || []} />
       </div>
 
       {/* Content */}

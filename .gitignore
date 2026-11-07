@@ -7,7 +7,6 @@ dist/
 *.log
 .jest-cache/
 tmp/
-/storage/
-/server/storage/
-!/server/storage/resumes/.gitkeep
+server/storage/resumes/*
+!server/storage/resumes/.gitkeep
 
