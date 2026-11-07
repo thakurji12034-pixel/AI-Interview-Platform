@@ -53,3 +53,4 @@ docker compose exec server npm run db:migrate:undo
 # In catastrophic situations, restore from the pre-upgrade SQL dump
 gunzip < backup_pre_upgrade_*.sql.gz | docker compose exec -T db mysql -u interview_app -p"${DB_PASSWORD}" interview_platform
 ```
+

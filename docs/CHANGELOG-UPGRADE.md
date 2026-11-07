@@ -81,3 +81,50 @@ Every dependency added to `server/` or `client/` must be recorded here with:
 | `DEPLOY.md` | MODIFY | Documented `npm run user:create` CLI for production interviewer provisioning and `/health/*` probes. | Documentation | Phase 1d |
 | `README.md` | MODIFY | Updated API base path to `/api/v1`, documented migration and automated test execution. | Documentation | Phase 1d |
 | `docs/verification/phase-1.md` | ADD | Comprehensive Phase 1 verification report with exact execution output and test counts. | Documentation | Phase 1d |
+
+---
+
+## Phase 2: RBAC, Invitations, Admin Core, Audit Logs, Design System & Role Dashboards
+
+### Dependency Additions (Justification Table)
+
+| Package | Version | Purpose | License | Maintenance Status | Audit Result |
+|---|---|---|---|---|---|
+| `lucide-react` | ^1.16.0 | Modern, lightweight, accessible icon set for role dashboards and navigation. | ISC | Actively maintained, >5M weekly downloads | 0 vulnerabilities |
+
+### File Change Log
+
+| Path | Action | Reason | Dependent Files Touched | Phase |
+|---|---|---|---|---|
+| `server/src/migrations/002_rbac_invitations_audit_tokens.js` | ADD | Migration creating `invitations`, `refresh_tokens`, `audit_logs`, and `platform_settings` tables, and adding `isActive` and `admin` role. | Umzug migrator | Phase 2a |
+| `server/src/models/User.js` | MODIFY | Added `admin` to role ENUM and added `isActive` boolean column. | User model | Phase 2a |
+| `server/src/models/Invitation.js` | ADD | Model tracking role invitation tokens, expiration, redemption, and inviter association. | Models index | Phase 2a |
+| `server/src/models/RefreshToken.js` | ADD | Model tracking token families (`familyId`), SHA-256 hashes, user agent, IP, and revocation status. | Models index | Phase 2a |
+| `server/src/models/AuditLog.js` | ADD | Model tracking system-wide administrative actions, targets, details, and client metadata. | Models index | Phase 2a |
+| `server/src/models/PlatformSetting.js` | ADD | Model storing dynamic platform settings with typed validation. | Models index | Phase 2a |
+| `server/src/scripts/seedAdmin.js` | ADD | Idempotent CLI script for initializing or restoring the primary administrator account. | `server/package.json` | Phase 2a |
+| `server/src/config/permissions.js` | ADD | Granular RBAC permission matrix for candidate, interviewer, and admin roles. | Permission middleware | Phase 2b |
+| `server/src/middleware/permission.js` | ADD | Middleware verifying authenticated user active status and assigned role permissions. | Route definitions | Phase 2b |
+| `server/src/services/authService.js` | ADD | Token family generation, replay detection with full-family revocation, and invitation token redemption. | Auth and admin controllers | Phase 2b |
+| `server/src/services/auditService.js` | ADD | Structured logging of administrative and security events to `audit_logs` table. | Admin controller | Phase 2b |
+| `server/src/controllers/adminController.js` | ADD | Controller for user directory, status toggle, role change, session termination, invitations, audit logs, and settings. | Admin routes | Phase 2b |
+| `server/src/routes/adminRoutes.js` | ADD | Admin REST endpoints mounted at `/api/v1/admin`. | `server/src/app.js` | Phase 2b |
+| `server/src/controllers/authController.js` | MODIFY | Added token family creation, token reuse detection handler, and invitation redemption. | Auth routes | Phase 2b |
+| `server/tests/admin.test.js` | ADD | 13 automated integration tests verifying RBAC, user management, self-demotion prevention, invitations, and token reuse revocation. | Test runner | Phase 2b |
+| `client/src/context/ThemeContext.jsx` | ADD | Dark/light/system theme provider with persistent storage and system preference listener. | Client application | Phase 2c |
+| `client/src/context/useTheme.js` | ADD | Standalone theme consumer hook adhering to React Refresh rules. | Theme consumers | Phase 2c |
+| `client/src/context/ToastContext.jsx` | ADD | Context and state provider for accessible, auto-dismissing toast notifications. | Client application | Phase 2c |
+| `client/src/context/useToast.js` | ADD | Standalone toast consumer hook adhering to React Refresh rules. | Toast consumers | Phase 2c |
+| `client/src/components/ui/Button.jsx` | ADD | Accessible button primitive with primary, secondary, danger, and ghost variants. | UI components | Phase 2c |
+| `client/src/components/ui/Badge.jsx` | ADD | Status badge primitive for role and interview statuses. | UI components | Phase 2c |
+| `client/src/components/ui/Modal.jsx` | ADD | Accessible modal dialog with backdrop dismiss and escape key handler. | UI components | Phase 2c |
+| `client/src/components/ui/SkeletonLoader.jsx` | ADD | Animated shimmer loader component for async state loading. | UI components | Phase 2c |
+| `client/src/components/ui/EmptyState.jsx` | ADD | Consistent empty state container with icon and action button. | UI components | Phase 2c |
+| `client/src/components/layout/AppShell.jsx` | ADD | Modern responsive layout shell with navigation bar, role badge, theme switcher, and logout. | App pages | Phase 2c |
+| `client/src/features/dashboard/CandidateDashboard.jsx` | ADD | Candidate dashboard with upcoming/past interviews, room launcher, and stats. | Dashboard page | Phase 2c |
+| `client/src/features/dashboard/InterviewerDashboard.jsx` | ADD | Interviewer dashboard with schedule modal, candidate selection, status controls, and metrics. | Dashboard page | Phase 2c |
+| `client/src/features/admin/AdminDashboard.jsx` | ADD | Admin panel with user management, status toggles, invitation generator, audit log viewer, and settings. | Dashboard page | Phase 2c |
+| `client/src/pages/AcceptInvite.jsx` | ADD | Dedicated onboarding page for accepting and redeeming role invitation tokens. | App router | Phase 2c |
+| `client/src/pages/Dashboard.jsx` | MODIFY | Converted to role-based dispatcher rendering Candidate, Interviewer, or Admin dashboard. | App router | Phase 2c |
+| `docs/verification/phase-2.md` | ADD | Comprehensive Phase 2 verification report with exact execution output and test counts. | Documentation | Phase 2d |
+

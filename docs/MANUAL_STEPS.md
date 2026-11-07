@@ -20,3 +20,4 @@ This document details every action and credential that the platform operator mus
 3. **Firewall Rules**: Open ports 22 (SSH), 80 (HTTP), and 443 (HTTPS).
 4. **Environment File**: Copy `.env.example` to `.env` on the host and populate strong secrets using `openssl rand -hex 32`.
 5. **Launch**: Execute `docker compose up -d --build`.
+
