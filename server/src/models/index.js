@@ -10,6 +10,7 @@ const TestCase = require('./TestCase');
 const InterviewTemplate = require('./InterviewTemplate');
 const Assessment = require('./Assessment');
 const AssessmentQuestion = require('./AssessmentQuestion');
+const Submission = require('./Submission');
 
 User.hasMany(Interview, { as: 'interviewsGiven', foreignKey: 'interviewerId' });
 User.hasMany(Interview, { as: 'interviewsTaken', foreignKey: 'candidateId' });
@@ -48,6 +49,16 @@ Assessment.hasMany(AssessmentQuestion, { as: 'assessmentQuestions', foreignKey: 
 AssessmentQuestion.belongsTo(Assessment, { as: 'assessment', foreignKey: 'assessmentId' });
 AssessmentQuestion.belongsTo(Question, { as: 'question', foreignKey: 'questionId' });
 
+// Phase 5: Code execution submissions associations
+User.hasMany(Submission, { as: 'submissions', foreignKey: 'userId', onDelete: 'CASCADE' });
+Submission.belongsTo(User, { as: 'user', foreignKey: 'userId' });
+
+Question.hasMany(Submission, { as: 'submissions', foreignKey: 'questionId', onDelete: 'CASCADE' });
+Submission.belongsTo(Question, { as: 'question', foreignKey: 'questionId' });
+
+Assessment.hasMany(Submission, { as: 'submissions', foreignKey: 'assessmentId', onDelete: 'SET NULL' });
+Submission.belongsTo(Assessment, { as: 'assessment', foreignKey: 'assessmentId' });
+
 module.exports = {
   User,
   Interview,
@@ -61,4 +72,5 @@ module.exports = {
   InterviewTemplate,
   Assessment,
   AssessmentQuestion,
+  Submission,
 };

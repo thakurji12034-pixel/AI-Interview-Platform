@@ -61,20 +61,21 @@ async function run() {
   const tableNames = tablesAfterUp.map((r) => Object.values(r)[0]);
   log(`Tables after UP: ${tableNames.join(', ')}`);
 
-  const phase4Tables = [
+  const targetTables = [
     'questions',
     'question_topics',
     'test_cases',
     'interview_templates',
     'assessments',
     'assessment_questions',
+    'submissions',
   ];
-  for (const t of phase4Tables) {
+  for (const t of targetTables) {
     if (!tableNames.includes(t)) {
       throw new Error(`FAILED: Expected table ${t} not found after UP!`);
     }
   }
-  log('VERIFIED: All Phase 4 tables created successfully.');
+  log('VERIFIED: All target tables (including submissions) created successfully.');
 
   // 5. Test Idempotency: Running UP a second time
   log('Testing Idempotency: Running migration UP a second time...');
@@ -93,12 +94,10 @@ async function run() {
   const [tablesAfterDown] = await testSequelize.query('SHOW TABLES');
   const tableNamesAfterDown = tablesAfterDown.map((r) => Object.values(r)[0]);
   log(`Tables after DOWN: ${tableNamesAfterDown.join(', ')}`);
-  for (const t of phase4Tables) {
-    if (tableNamesAfterDown.includes(t)) {
-      throw new Error(`FAILED: Table ${t} was NOT dropped during down!`);
-    }
+  if (tableNamesAfterDown.includes('submissions')) {
+    throw new Error('FAILED: Table submissions was NOT dropped during down!');
   }
-  log('VERIFIED: DOWN removed Phase 4 tables while preserving previous baseline data.');
+  log('VERIFIED: DOWN removed submissions table while preserving baseline data.');
 
   // 7. Re-apply UP to verify clean re-application
   log('Re-applying migration UP after rollback...');

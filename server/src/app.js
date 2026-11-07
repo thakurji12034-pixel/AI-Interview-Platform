@@ -10,6 +10,7 @@ const interviewRoutes = require('./routes/interviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const assessmentRoutes = require('./routes/assessmentRoutes');
+const submissionRoutes = require('./routes/submissionRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const { isRedisHealthy } = require('./config/redis');
 
@@ -65,6 +66,7 @@ app.use('/api/v1/interviews', interviewRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/questions', questionRoutes);
 app.use('/api/v1/assessments', assessmentRoutes);
+app.use('/api/v1/submissions', submissionRoutes);
 
 // Temporary backward compatibility aliases (/api/*)
 app.use('/api/auth', authRoutes);
@@ -72,6 +74,7 @@ app.use('/api/interviews', interviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/assessments', assessmentRoutes);
+app.use('/api/submissions', submissionRoutes);
 
 app.use(errorHandler);
 

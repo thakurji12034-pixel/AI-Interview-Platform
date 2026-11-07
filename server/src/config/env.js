@@ -19,6 +19,9 @@ const envSchema = Joi.object({
   REDIS_PASSWORD: Joi.string().allow('').default(''),
   REDIS_MOCK: Joi.boolean().default(false),
   REDIS_ENABLED: Joi.boolean().default(true),
+  JUDGE0_ENDPOINT: Joi.string().default('http://localhost:2358'),
+  JUDGE0_API_KEY: Joi.string().allow('').default(''),
+  EXECUTION_PROVIDER: Joi.string().valid('mock', 'judge0').default('mock'),
 })
   .unknown(true);
 
@@ -64,6 +67,11 @@ module.exports = {
     password: envVars.REDIS_PASSWORD || undefined,
     mock: envVars.REDIS_MOCK,
     enabled: envVars.REDIS_ENABLED,
+  },
+  execution: {
+    provider: envVars.EXECUTION_PROVIDER,
+    judge0Endpoint: envVars.JUDGE0_ENDPOINT,
+    judge0ApiKey: envVars.JUDGE0_API_KEY,
   },
 };
 
