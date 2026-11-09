@@ -82,7 +82,6 @@ export default function Room() {
 
     const socket = createSocket();
     socketRef.current = socket;
-    window.__socket = socket;
 
     if (editorRef.current && !bindingRef.current) {
       bindingRef.current = new MonacoBinding(
@@ -173,7 +172,6 @@ export default function Room() {
     socket.connect();
 
     return () => {
-      window.__socket = null;
       ydoc.off('update', handleYjsUpdate);
       clearTimeout(typingTimer.current);
       if (bindingRef.current) {
@@ -218,16 +216,18 @@ export default function Room() {
 
   if (error) {
     return (
-      <div className="grid min-h-screen place-items-center bg-slate-50 p-6">
-        <div className="max-w-md rounded-2xl bg-white p-8 text-center shadow">
-          <ShieldAlert className="mx-auto h-12 w-12 text-red-500 mb-3" />
-          <h1 className="text-xl font-semibold text-slate-800">Cannot open this room</h1>
-          <p className="mt-2 text-sm text-red-600">{error}</p>
+      <div className="grid min-h-screen place-items-center bg-[#070A12] p-6 text-slate-100">
+        <div className="max-w-md w-full rounded-2xl border border-slate-800 bg-slate-900/90 backdrop-blur-xl p-8 text-center shadow-2xl">
+          <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mx-auto mb-3">
+            <ShieldAlert className="h-6 w-6" />
+          </div>
+          <h1 className="text-xl font-bold text-white">Cannot Open Interview Room</h1>
+          <p className="mt-2 text-xs text-rose-400 font-mono bg-rose-950/30 border border-rose-900/50 rounded-lg p-2.5">{error}</p>
           <Link
             to="/"
-            className="mt-6 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="mt-6 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition"
           >
-            Back to dashboard
+            Back to Dashboard
           </Link>
         </div>
       </div>
@@ -244,49 +244,49 @@ export default function Room() {
   const canManageSnapshots = user?.role === 'interviewer' || user?.role === 'admin';
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3">
+    <div className="flex h-screen flex-col bg-[#0B0F19] text-slate-100 selection:bg-indigo-500/30">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/90 backdrop-blur-xl px-5 py-3">
         <div className="flex items-center gap-3">
           <Link
             to="/"
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+            className="rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800 hover:text-white transition"
           >
             &larr; Dashboard
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-semibold text-slate-800">
+              <h1 className="text-sm font-bold text-white">
                 {interview?.title || 'Joining room...'}
               </h1>
               {isObserver && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 px-2 py-0.5 text-[11px] font-medium text-amber-300 border border-amber-800">
                   <Eye className="h-3 w-3" /> Observer (Read-Only)
                 </span>
               )}
             </div>
-            <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+            <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-400">
               {interview && <StatusBadge status={interview.status} />}
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1.5 text-[11px]">
                 <span
-                  className={`h-2 w-2 rounded-full ${connected ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                  className={`h-2 w-2 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}
                 />
-                {connected ? 'Connected' : 'Reconnecting...'}
+                {connected ? 'Realtime CRDT Connected' : 'Reconnecting...'}
               </span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {people.map((p) => (
-              <div key={p.id} className="flex items-center gap-1.5 text-sm text-slate-600">
+              <div key={p.id} className="flex items-center gap-1.5 text-xs text-slate-300">
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    online.includes(p.id) ? 'bg-emerald-500' : 'bg-slate-300'
+                    online.includes(p.id) ? 'bg-emerald-400' : 'bg-slate-600'
                   }`}
                 />
-                {p.name}
-                {p.id === user?.id && ' (you)'}
+                <span className="font-medium">{p.name}</span>
+                {p.id === user?.id && <span className="text-slate-500 text-[10px]">(you)</span>}
               </div>
             ))}
           </div>
@@ -295,7 +295,7 @@ export default function Room() {
             value={language}
             onChange={onLanguageChange}
             disabled={isObserver}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50"
+            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 disabled:opacity-50"
           >
             {LANGUAGES.map((l) => (
               <option key={l.id} value={l.id}>
@@ -313,8 +313,8 @@ export default function Room() {
             disabled={isObserver}
             className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold cursor-pointer transition ${
               showRunPanel
-                ? 'border-indigo-600 bg-indigo-600 text-white shadow-xs'
-                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                ? 'border-indigo-500 bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+                : 'border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white'
             } disabled:opacity-50`}
             title="Run code against test cases"
           >
@@ -328,7 +328,7 @@ export default function Room() {
                 type="button"
                 onClick={handleSaveSnapshot}
                 disabled={savingSnapshot || isObserver}
-                className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50 cursor-pointer"
                 title="Capture persistent code snapshot"
               >
                 <Camera className="h-3.5 w-3.5" />
@@ -343,8 +343,8 @@ export default function Room() {
                 }}
                 className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium cursor-pointer ${
                   showSnapshots
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                    ? 'border-indigo-500 bg-indigo-950/60 text-indigo-300'
+                    : 'border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700'
                 }`}
                 title="View snapshot timeline"
               >
@@ -355,7 +355,7 @@ export default function Room() {
           )}
 
           {snapshotMessage && (
-            <span className="text-xs font-medium text-emerald-600 animate-fade-in">
+            <span className="text-xs font-medium text-emerald-400 animate-fade-in">
               {snapshotMessage}
             </span>
           )}
@@ -392,15 +392,15 @@ export default function Room() {
 
         {/* Snapshot History Side Drawer */}
         {showSnapshots && (
-          <aside className="w-80 border-l border-slate-200 bg-white p-4 overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-slate-500" /> Snapshot Timeline
+          <aside className="w-80 border-l border-slate-800 bg-slate-900/95 p-4 overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h2 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Clock className="h-4 w-4 text-indigo-400" /> Snapshot Timeline
               </h2>
               <button
                 type="button"
                 onClick={() => setShowSnapshots(false)}
-                className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-xs text-slate-400 hover:text-white cursor-pointer"
               >
                 Close
               </button>
@@ -417,18 +417,18 @@ export default function Room() {
                 {snapshots.map((s) => (
                   <div
                     key={s.id}
-                    className="rounded-lg border border-slate-200 p-2.5 text-xs hover:border-indigo-300 transition-colors"
+                    className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs hover:border-slate-700 transition"
                   >
-                    <div className="flex items-center justify-between font-medium text-slate-700">
+                    <div className="flex items-center justify-between font-semibold text-white">
                       <span>Version {s.version}</span>
-                      <span className="text-slate-400 text-[10px]">
+                      <span className="text-slate-500 font-mono text-[10px]">
                         {new Date(s.createdAt).toLocaleTimeString()}
                       </span>
                     </div>
-                    <div className="mt-1 text-[11px] text-slate-500">
-                      Language: <span className="font-mono text-slate-700">{s.language}</span>
+                    <div className="mt-1 text-[11px] text-slate-400">
+                      Language: <span className="font-mono text-indigo-300">{s.language}</span>
                     </div>
-                    <div className="mt-1 text-[11px] text-slate-500">
+                    <div className="mt-1 text-[11px] text-slate-400">
                       Lines: {s.codeContent.split('\n').length} | Characters: {s.codeContent.length}
                     </div>
                   </div>
@@ -439,7 +439,7 @@ export default function Room() {
         )}
       </div>
 
-      <footer className="flex items-center justify-between border-t border-slate-200 bg-white px-5 py-2 text-xs text-slate-500">
+      <footer className="flex items-center justify-between border-t border-slate-800 bg-slate-950 px-5 py-2 text-xs text-slate-400">
         <span>
           {isObserver
             ? 'Observer mode: Code editing is read-only.'
@@ -447,7 +447,7 @@ export default function Room() {
               ? `${other?.name || 'The other participant'} is typing...`
               : 'Yjs CRDT synchronized — edits resolve conflict-free in real time.'}
         </span>
-        <span className="font-mono text-[11px]">Room: {roomId.slice(0, 8)}...</span>
+        <span className="font-mono text-[11px] text-slate-500">Room: {roomId.slice(0, 8)}...</span>
       </footer>
     </div>
   );

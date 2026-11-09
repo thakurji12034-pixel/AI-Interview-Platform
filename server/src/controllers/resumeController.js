@@ -49,6 +49,28 @@ class ResumeController {
       next(err);
     }
   }
+
+  async predictCategory(req, res, next) {
+    try {
+      const { text, resumeId } = req.body;
+      const result = await resumeService.predictCategory(req.user.id, text, resumeId);
+      return res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getMlMetadata(req, res, next) {
+    try {
+      const metadata = resumeService.getMlMetadata();
+      if (!metadata) {
+        return res.status(404).json({ message: 'Model metadata not available' });
+      }
+      return res.json({ metadata });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new ResumeController();

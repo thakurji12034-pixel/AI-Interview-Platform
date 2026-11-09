@@ -8,7 +8,7 @@ const allowedPublicRoles =
 
 const registerSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required(),
-  email: Joi.string().trim().lowercase().email().required(),
+  email: Joi.string().trim().lowercase().email({ tlds: false }).required(),
   password: Joi.string().min(10).max(64).required(),
   inviteToken: Joi.string().trim().hex().length(64).optional(),
   role: Joi.when('inviteToken', {
@@ -19,7 +19,7 @@ const registerSchema = Joi.object({
 });
 
 const loginSchema = Joi.object({
-  email: Joi.string().trim().lowercase().email().required(),
+  email: Joi.string().trim().lowercase().email({ tlds: false }).required(),
   password: Joi.string().required(),
 });
 

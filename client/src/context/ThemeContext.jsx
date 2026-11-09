@@ -3,7 +3,7 @@ import { ThemeContext } from './useTheme';
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setThemeState] = useState(() => {
-    return localStorage.getItem('intelliprep_theme') || 'system';
+    return localStorage.getItem('intelliprep_theme') || 'dark';
   });
 
   const [isDark, setIsDark] = useState(false);

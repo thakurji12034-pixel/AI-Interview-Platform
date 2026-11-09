@@ -11,3 +11,18 @@ tmp/
 server/storage/resumes/*
 !server/storage/resumes/.gitkeep
 
+# Python artifacts and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+
+# Download archives
+archive*.zip
+
+

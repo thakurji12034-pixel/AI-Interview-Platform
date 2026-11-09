@@ -56,4 +56,34 @@ describe('ResumeUploadModal Component', () => {
     expect(screen.getByText('Kubernetes')).toBeInTheDocument();
     expect(screen.getByText(/Deterministic skill overlap estimate/i)).toBeInTheDocument();
   });
+
+  it('predicts resume category via ML service and displays classification card', async () => {
+    http.post.mockResolvedValueOnce({
+      data: {
+        success: true,
+        predictedCategory: 'Python Developer',
+        confidence: 0.89,
+        topPredictions: [
+          { category: 'Python Developer', confidence: 0.89 },
+          { category: 'Data Science', confidence: 0.06 },
+        ],
+        modelInfo: { algorithm: 'TF-IDF + Logistic Regression' },
+      },
+    });
+
+    render(<ResumeUploadModal isOpen={true} onClose={vi.fn()} />);
+
+    const textarea = screen.getByPlaceholderText(/Paste job description text here/i);
+    fireEvent.change(textarea, { target: { value: 'Senior Python Engineer with FastAPI and Machine Learning' } });
+
+    const predictBtn = screen.getByRole('button', { name: /Predict Category \(ML\)/i });
+    fireEvent.click(predictBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Python Developer')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/89% confidence/i)).toBeInTheDocument();
+    expect(screen.getByText(/Predicted Resume Role/i)).toBeInTheDocument();
+  });
 });

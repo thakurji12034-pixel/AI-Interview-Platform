@@ -5,6 +5,7 @@ const { aiManager } = require('../ai');
 const { buildResumeExtractionPrompt } = require('../ai/prompts/resumeExtractionPrompt');
 const { CANONICAL_SKILLS, normalizeSkill } = require('./skillTaxonomy');
 const { queueManager, QUEUE_NAMES } = require('../jobs/queueManager');
+const { mlService } = require('./mlService');
 const { logger } = require('../utils/logger');
 const AppError = require('../utils/AppError');
 
@@ -127,6 +128,21 @@ class ResumeService {
         }
       }
 
+      // Execute ML category prediction on extracted resume text
+      try {
+        const mlResult = await mlService.predictResumeCategory(extractedText);
+        if (mlResult && mlResult.success) {
+          if (typeof parsedData === 'object' && parsedData !== null) {
+            parsedData.predictedCategory = mlResult.predictedCategory;
+            parsedData.categoryConfidence = mlResult.confidence;
+            parsedData.categoryPredictions = mlResult.topPredictions;
+            parsedData.mlModelInfo = mlResult.modelInfo;
+          }
+        }
+      } catch (mlErr) {
+        logger.warn({ err: mlErr.message, resumeId }, '[ResumeService] ML category prediction skipped');
+      }
+
       await resume.update({
         extractedText,
         parsedData,
@@ -232,6 +248,25 @@ class ResumeService {
       missingSkills,
       advisoryNote: 'Match score is a deterministic estimate based on skill keyword overlap. Human review is recommended.',
     };
+  }
+
+  async predictCategory(userId, text, resumeId = null) {
+    let contentToPredict = text;
+
+    if (!contentToPredict && resumeId) {
+      const resume = await this.getResumeById(resumeId, { id: userId, role: 'candidate' });
+      contentToPredict = resume.extractedText;
+    }
+
+    if (!contentToPredict || typeof contentToPredict !== 'string' || !contentToPredict.trim()) {
+      throw new AppError('Resume text or valid resumeId is required for category prediction', 400, 'INVALID_PREDICTION_INPUT');
+    }
+
+    return await mlService.predictResumeCategory(contentToPredict);
+  }
+
+  getMlMetadata() {
+    return mlService.getModelMetadata();
   }
 }
 

@@ -9,7 +9,13 @@ import ReportsPage from './ReportsPage';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [prevRole, setPrevRole] = useState(user?.role);
   const [currentTab, setCurrentTab] = useState(() => (user?.role === 'admin' ? 'overview' : 'interviews'));
+
+  if (user?.role !== prevRole) {
+    setPrevRole(user?.role);
+    setCurrentTab(user?.role === 'admin' ? 'overview' : 'interviews');
+  }
 
   const renderContent = () => {
     if (currentTab === 'questions') {
@@ -21,14 +27,14 @@ export default function Dashboard() {
     }
 
     if (user?.role === 'admin') {
-      return <AdminDashboard activeTab={currentTab} />;
+      return <AdminDashboard activeTab={currentTab} onTabChange={setCurrentTab} />;
     }
 
     if (user?.role === 'interviewer') {
-      return <InterviewerDashboard />;
+      return <InterviewerDashboard onTabChange={setCurrentTab} />;
     }
 
-    return <CandidateDashboard />;
+    return <CandidateDashboard onTabChange={setCurrentTab} />;
   };
 
   // If reports tab is active, ReportsPage provides its own AppShell wrapper, so render directly or handle cleanly

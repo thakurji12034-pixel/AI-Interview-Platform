@@ -23,6 +23,8 @@ export const ResumeUploadModal = ({ isOpen, onClose, onResumeUpdated }) => {
   const [matching, setMatching] = useState(false);
   const [matchResult, setMatchResult] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [predictingCategory, setPredictingCategory] = useState(false);
+  const [livePrediction, setLivePrediction] = useState(null);
 
   if (!isOpen) return null;
 
@@ -131,9 +133,38 @@ export const ResumeUploadModal = ({ isOpen, onClose, onResumeUpdated }) => {
     }
   };
 
+  const handlePredictCategory = async () => {
+    if (!resumeData?.id && !jobDescription.trim()) {
+      toast.error('Upload a resume or paste text into the job requirements to predict category');
+      return;
+    }
+    setPredictingCategory(true);
+    try {
+      const payload = resumeData?.id
+        ? { resumeId: resumeData.id }
+        : { text: jobDescription.trim() };
+      const res = await http.post('/resumes/predict-category', payload);
+      if (res.data.success) {
+        setLivePrediction(res.data);
+        toast.success(`Predicted Category: ${res.data.predictedCategory}`);
+      } else {
+        toast.error(res.data.message || 'Classification returned no results');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.response?.data?.error?.message || 'Failed to predict resume category');
+    } finally {
+      setPredictingCategory(false);
+    }
+  };
+
   const extractedSkills =
     resumeData?.parsedData?.skills ||
     resumeData?.extractedSkills ||
+    [];
+
+  const alternativePredictions =
+    livePrediction?.topPredictions?.slice(1, 4) ||
+    resumeData?.parsedData?.categoryPredictions?.slice(1, 4) ||
     [];
 
   return (
@@ -263,6 +294,41 @@ export const ResumeUploadModal = ({ isOpen, onClose, onResumeUpdated }) => {
             </div>
           )}
 
+          {/* ML Resume Category Prediction Card */}
+          {(livePrediction || resumeData?.parsedData?.predictedCategory) && (
+            <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Predicted Resume Role (ML Classifier):
+                </span>
+                {(livePrediction?.confidence || resumeData?.parsedData?.categoryConfidence) && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                    {Math.round((livePrediction?.confidence || resumeData?.parsedData?.categoryConfidence) * 100)}% confidence
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-md text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  {livePrediction?.predictedCategory || resumeData?.parsedData?.predictedCategory}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  Scikit-Learn TF-IDF + Logistic Regression
+                </span>
+              </div>
+              {alternativePredictions.length > 0 && (
+                <div className="text-[10px] text-slate-400 flex items-center gap-1.5 flex-wrap pt-1">
+                  <span className="text-slate-500">Related domains:</span>
+                  {alternativePredictions.map((p, i) => (
+                    <span key={i} className="text-slate-300 bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/60 font-mono">
+                      {p.category} ({Math.round(p.confidence * 100)}%)
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Job Description Matching Section */}
           <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2">
@@ -283,7 +349,27 @@ export const ResumeUploadModal = ({ isOpen, onClose, onResumeUpdated }) => {
               className="w-full text-xs p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={handlePredictCategory}
+                disabled={(!resumeData?.id && !jobDescription.trim()) || predictingCategory}
+                size="sm"
+                className="text-xs border-purple-500/30 text-purple-400 hover:bg-purple-950/30"
+              >
+                {predictingCategory ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mr-1.5" />
+                    Classifying...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
+                    Predict Category (ML)
+                  </>
+                )}
+              </Button>
+
               <Button
                 onClick={handleMatchJob}
                 disabled={!jobDescription.trim() || matching}

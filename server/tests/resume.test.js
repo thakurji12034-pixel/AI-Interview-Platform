@@ -111,17 +111,20 @@ describe('Resume Intelligence API (/api/v1/resumes)', () => {
       const resumeId = res.body.resume.id;
 
       // Allow background worker to parse resume
-      await new Promise((resolve) => setTimeout(resolve, 400));
-
-      const pollRes = await request(app)
-        .get(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${candidateToken}`);
+      let pollRes;
+      for (let i = 0; i < 25; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        pollRes = await request(app)
+          .get(`/api/v1/resumes/${resumeId}`)
+          .set('Authorization', `Bearer ${candidateToken}`);
+        if (pollRes.body.resume?.status === 'parsed') break;
+      }
 
       expect(pollRes.status).toBe(200);
       expect(pollRes.body.resume.status).toBe('parsed');
       expect(pollRes.body.resume.parsedData).toBeDefined();
       expect(pollRes.body.resume.parsedData.skills.length).toBeGreaterThan(0);
-    });
+    }, 15000);
 
     test('4. Extracted skills are normalized against canonical taxonomy and upserted into candidate_skills', async () => {
       const validPdfBuffer = Buffer.from('%PDF-1.4\nJane Candidate\nSkills: javascript, reactjs, nodejs, postgresql, docker\n%%EOF');
@@ -132,7 +135,11 @@ describe('Resume Intelligence API (/api/v1/resumes)', () => {
         .attach('resume', validPdfBuffer, 'resume.pdf');
 
       expect(uploadRes.body.resume.id).toBeDefined();
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      for (let i = 0; i < 25; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const skills = await CandidateSkill.findAll({ where: { userId: candidateUser.id } });
+        if (skills.length > 0) break;
+      }
 
       const skills = await CandidateSkill.findAll({ where: { userId: candidateUser.id } });
       expect(skills.length).toBeGreaterThan(0);
@@ -231,6 +238,47 @@ describe('Resume Intelligence API (/api/v1/resumes)', () => {
 
       expect(deleteRes.status).toBe(404);
       expect(deleteRes.body.error.code).toBe('RESUME_NOT_FOUND');
+    });
+  });
+
+  describe('ML Resume Category Prediction Engine', () => {
+    test('8. Predicts resume category from raw text using trained ML classifier', async () => {
+      const sampleText = 'Senior Java Developer with extensive Spring Boot, Microservices, JVM performance tuning, and Kafka experience.';
+
+      const res = await request(app)
+        .post('/api/v1/resumes/predict-category')
+        .set('Authorization', `Bearer ${candidateToken}`)
+        .send({ text: sampleText });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.predictedCategory).toBe('Java Developer');
+      expect(typeof res.body.confidence).toBe('number');
+      expect(Array.isArray(res.body.topPredictions)).toBe(true);
+      expect(res.body.topPredictions.length).toBeGreaterThan(0);
+      expect(res.body.modelInfo).toBeDefined();
+    });
+
+    test('9. Rejects empty resume text for ML category prediction (400 Bad Request)', async () => {
+      const res = await request(app)
+        .post('/api/v1/resumes/predict-category')
+        .set('Authorization', `Bearer ${candidateToken}`)
+        .send({ text: '   ' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_PREDICTION_INPUT');
+    });
+
+    test('10. Returns ML model metadata and trained classes', async () => {
+      const res = await request(app)
+        .get('/api/v1/resumes/ml/metadata')
+        .set('Authorization', `Bearer ${candidateToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.metadata).toBeDefined();
+      expect(res.body.metadata.numClasses).toBe(25);
+      expect(res.body.metadata.metrics).toBeDefined();
+      expect(res.body.metadata.metrics.accuracy).toBeGreaterThan(0.9);
     });
   });
 });

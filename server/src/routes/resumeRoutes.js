@@ -20,6 +20,8 @@ const upload = multer({
 router.use(auth);
 
 router.post('/', upload.single('resume'), (req, res, next) => resumeController.upload(req, res, next));
+router.post('/predict-category', (req, res, next) => resumeController.predictCategory(req, res, next));
+router.get('/ml/metadata', (req, res, next) => resumeController.getMlMetadata(req, res, next));
 router.get('/:id', (req, res, next) => resumeController.getById(req, res, next));
 router.delete('/:id', (req, res, next) => resumeController.delete(req, res, next));
 router.post('/match-job', (req, res, next) => resumeController.matchJob(req, res, next));
