@@ -1,0 +1,63 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1542 >>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(Alex Chen) ' 
+(Email: candidate@example.com | Phone:  555  234-5678 | San Francisco, CA) ' 
+(Senior Full-Stack Software Engineer) ' 
+() ' 
+(PROFESSIONAL SUMMARY) ' 
+(Full-Stack Engineer with 5+ years of experience designing scalable web applications and real-time systems.) ' 
+(Proven track record in building distributed services, microservices architecture, and responsive user interfaces.) ' 
+() ' 
+(TECHNICAL SKILLS) ' 
+(Languages: JavaScript, TypeScript, Python, SQL, C++) ' 
+(Frontend: React, Tailwind CSS, HTML5, CSS3, Redux) ' 
+(Backend: Node.js, Express, FastAPI, REST APIs, WebSockets) ' 
+(Databases: MySQL, PostgreSQL, Redis, MongoDB) ' 
+(DevOps and Tools: Docker, Kubernetes, Git, AWS, CI/CD pipelines) ' 
+() ' 
+(WORK EXPERIENCE) ' 
+(Senior Software Engineer | CloudScale Systems  2022 - Present ) ' 
+(- Architected distributed real-time collaborative workspace supporting 10,000+ concurrent users.) ' 
+(- Optimized SQL database queries and implemented Redis caching, reducing API latency by 45 percent.) ' 
+(- Mentored 4 junior engineers and established engineering best practices for TypeScript and React.) ' 
+() ' 
+(Software Engineer | DataBridge Technologies  2020 - 2022 ) ' 
+(- Developed backend microservices using Node.js and Express with automated integration tests.) ' 
+(- Containerized legacy applications using Docker and streamlined production cloud deployments.) ' 
+() ' 
+(EDUCATION) ' 
+(Bachelor of Science in Computer Science | University of California, Berkeley  2016 - 2020 ) ' 
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001834 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1904
+%%EOF
