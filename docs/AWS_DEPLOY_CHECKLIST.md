@@ -281,3 +281,4 @@ docker run --rm \
 To maintain complete engineering integrity:
 - **Statically & Locally Verified**: Dockerfile syntax, multi-stage builds, non-root user permissions, memory limits, healthcheck probes, Caddyfile routing, WebSocket reverse proxying, migration commands, and `docker compose config` were verified directly in this repository.
 - **Not Live-Verified Against AWS**: The physical AWS EC2 instance launch, DuckDNS DNS delegation, and cloud security group creation are provided as tested architectural templates but were not provisioned against a live commercial AWS billing account during local test suite execution.
+

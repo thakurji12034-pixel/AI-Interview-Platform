@@ -151,3 +151,4 @@ if ($violations -eq 0) {
     Write-Host "=======================================================`n" -ForegroundColor Cyan
     exit 1
 }
+
