@@ -7,7 +7,14 @@ const sequelize = new Sequelize(
   config.db.pass,
   {
     host: config.db.host,
+    port: Number(process.env.DB_PORT || 3306),
     dialect: 'mysql',
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: true,
+      },
+    },
     logging: false,
     pool: {
       max: 10,
