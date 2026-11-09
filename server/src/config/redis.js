@@ -135,6 +135,7 @@ function createClientOptions(overrides = {}) {
     host: config.redis.host,
     port: config.redis.port,
     password: config.redis.password,
+    tls: {},
     enableOfflineQueue: false, // Do not hang HTTP requests when Redis is disconnected
     maxRetriesPerRequest: 1, // Fail fast on store calls
     enableReadyCheck: true,
