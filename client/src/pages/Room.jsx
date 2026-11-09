@@ -82,6 +82,7 @@ export default function Room() {
 
     const socket = createSocket();
     socketRef.current = socket;
+    window.__socket = socket;
 
     if (editorRef.current && !bindingRef.current) {
       bindingRef.current = new MonacoBinding(
@@ -172,6 +173,7 @@ export default function Room() {
     socket.connect();
 
     return () => {
+      window.__socket = null;
       ydoc.off('update', handleYjsUpdate);
       clearTimeout(typingTimer.current);
       if (bindingRef.current) {
@@ -361,7 +363,7 @@ export default function Room() {
       </header>
 
       <div className="relative flex min-h-0 flex-1">
-        <div className="flex-1" onKeyDown={handleKeyDown}>
+        <div className="flex-1 min-w-0" onKeyDown={handleKeyDown}>
           <Editor
             height="100%"
             theme="vs-dark"

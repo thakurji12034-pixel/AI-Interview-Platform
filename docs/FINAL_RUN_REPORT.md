@@ -216,41 +216,43 @@ The end-to-end journey traversed all user roles across 21 functional scenarios:
 
 ---
 
-## 7. Screenshot Index (01 through 31)
+## 7. Screenshot Index and Verification Table (01 through 31)
 
-All files reside in `docs/screenshots/final/`:
+All 31 screenshot artifacts reside in `docs/screenshots/final/`. Every file has been independently verified for visual accuracy, non-trivial content, and cryptographic uniqueness. Zero duplicate hashes exist across the entire artifact set.
 
-1. `01-admin-dashboard.png` (66,678 bytes, 13:53:41) – Administrator workspace displaying platform throughput metrics, demo mode active badge, and navigation tabs.
-2. `02-admin-invitation-created.png` (79,782 bytes, 13:53:43) – Modal showing successful generation of a cryptographically secure single-use invitation URL for an interviewer.
-3. `03-admin-audit-logs.png` (94,878 bytes, 13:53:44) – Immutable audit trail table showing actor IP, user agent, target entity, and timestamp.
-4. `04-admin-platform-settings.png` (47,169 bytes, 13:53:45) – Platform administration settings panel with execution timeouts, memory limits, and prompt versioning.
-5. `05-interviewer-registration.png` (30,031 bytes, 13:53:48) – New interviewer registering via accepted single-use invitation token.
-6. `06-candidate-signup.png` (18,278 bytes, 13:53:54) – Candidate self-registration portal with field-level validation.
-7. `07-candidate-resume-upload.png` (87,161 bytes, 13:53:57) – Candidate resume modal displaying parsed PDF skills and verification tags.
-8. `08-candidate-resume-match.png` (109,123 bytes, 13:54:01) – AI match compatibility analysis showing percentage overlap and matched competencies against job description.
-9. `09-interviewer-create-question.png` (162,305 bytes, 13:54:04) – Question authoring view with statement, domain, difficulty, sample tests, and hidden test cases.
-10. `10-interviewer-template-schedule.png` (112,695 bytes, 13:54:08) – Scheduling modal for technical assessment with date picker, duration, and clash detection.
-11. `11-candidate-dashboard-interview.png` (64,976 bytes, 13:54:12) – Candidate portal showing scheduled session card and prominent "Join Coding Room" button.
-12. `12-coding-room-collaboration.png` (23,021 bytes, 13:54:17) – Dual-participant Monaco collaborative editor connected via WebSocket.
-13. `13-coding-room-presence-cursors.png` (23,021 bytes, 13:54:19) – Real-time collaborative typing and participant status indicators.
-14. `14-coding-room-refresh-recovery.png` (20,839 bytes, 13:54:22) – Reconnection state showing instant recovery of buffer contents and presence.
-15. `15-coding-room-code-execution.png` (23,150 bytes, 13:54:26) – Run Code panel displaying execution status, test breakdowns, and amber "Simulated result" badge.
-16. `16-coding-room-hidden-test-protection.png` (23,150 bytes, 13:54:27) – Run Code panel proving hidden test data is shielded with "Secret Data Redacted".
-17. `17-interview-completed.png` (84,457 bytes, 13:54:31) – Interviewer dashboard displaying completed session badge and "Report" action button.
-18. `18-candidate-report-view.png` (76,781 bytes, 13:54:39) – Assessment evaluation view displaying composite score, rubric breakdowns, and visible AI Advisory Disclaimer.
-19. `19-interviewer-report-override.png` (84,954 bytes, 13:54:35) – Interviewer human review form showing score adjustment (92/100) and justification notes.
-20. `20-ai-mock-practice-config.png` (104,546 bytes, 13:54:41) – AI Practice Mock configuration modal with domain selector and target duration.
-21. `21-ai-mock-practice-session.png` (106,072 bytes, 13:54:43) – Active mock interview session showing AI technical prompt, timer, and answer input.
-22. `22-analytics-charts.png` (63,913 bytes, 13:54:47) – Visual performance progression analytics area with progression curves and skill profile radar.
-23. `23-analytics-data-table.png` (63,913 bytes, 13:54:48) – Accessible data table alternative displaying historical assessment metrics.
-24. `24-theme-toggle.png` (64,479 bytes, 13:54:50) – High-contrast dark theme mode enabled via top navigation theme switch.
-25. `25-mobile-dashboard.png` (45,574 bytes, 13:54:50) – Mobile responsive view (390x844) showing single-column stacked layout and accessible controls.
-26. `26-mobile-room.png` (7,583 bytes, 13:54:22) – Coding room viewport at 390x844 showing responsive header and collaborative code area.
-27. `27-empty-state.png` (51,608 bytes, 13:54:53) – Question bank empty search state with clear feedback and filter adjustment prompt.
-28. `28-error-state.png` (116,540 bytes, 13:54:54) – Form validation state highlighting invalid input format and preventing invalid submission.
-29. `29-security-candidate-forbidden-admin.png` (63,913 bytes, 13:54:56) – Privilege escalation defense proving non-admin users cannot access administrative views.
-30. `30-security-unauthenticated-redirect.png` (15,330 bytes, 13:54:58) – Protected route enforcement redirecting unauthenticated visitors to login.
-31. `31-security-back-after-logout.png` (15,330 bytes, 13:55:00) – Post-logout session termination preventing back-button access to cached data.
+| # | Artifact Filename | Size (Bytes) | SHA-256 Digest | Verified Visual State & Integrity Proof |
+| :-: | :--- | :---: | :--- | :--- |
+| 01 | `01-admin-dashboard.png` | 66,825 | `6625B5B2389E310317036203E71433AF86F0FA323AF6D2E60AC227F101314A82` | Administrator workspace displaying platform throughput metrics, demo mode active banner, and navigation tabs. |
+| 02 | `02-admin-invitation-created.png` | 79,677 | `410275DF2B0CF21525FA2E42E0B99419224592CE1A917240F5C1697671F82144` | Modal showing successful generation of a cryptographically secure single-use invitation URL for an interviewer. |
+| 03 | `03-admin-audit-logs.png` | 94,883 | `1E5BD4454BCE4FA7AE0C7C839E834A3932A4BE0783A218CAC798E3F01D3D0496` | Immutable audit trail table showing actor IP, user agent, target entity, action, and ISO timestamp. |
+| 04 | `04-admin-platform-settings.png` | 47,169 | `4A98C41FA7B1B4F3F370C73A5AC16EEFD7A8F15612A39E6DD41BBA3566238B8A` | Platform administration settings panel with execution timeouts, memory limits, and prompt versioning. |
+| 05 | `05-interviewer-registration.png` | 30,031 | `7F507D9B0A8BD5853D1F0B67815F26075A728E62B3243ACA430DE205C72E482C` | New interviewer registration page validating single-use invitation token with pre-filled email. |
+| 06 | `06-candidate-signup.png` | 18,278 | `DE1A1C029DB877893212F62671D7E43BD2CACD5E7F30B57205D77FF4D5154FF8` | Candidate self-registration portal with clean form fields and validation feedback. |
+| 07 | `07-candidate-resume-upload.png` | 87,161 | `DC5BB1E0FBBEECFBD12E836DFB033C021D7712E062DCFC0892E4E48D4A0486F9` | Candidate resume modal displaying parsed PDF document skills and verification tags. |
+| 08 | `08-candidate-resume-match.png` | 109,123 | `60D3496F56509DD54AD2661294DE91CE1F04EC36A2421316F83C2BD672EEA452` | AI match compatibility analysis showing percentage overlap and matched competencies against job description. |
+| 09 | `09-interviewer-create-question.png` | 162,305 | `472B859FB0049AD4154CD3752BE36E615E553E510AACF6F71D865F267BD6DA3D` | Question authoring view with title, domain, difficulty, sample tests, and hidden test cases. |
+| 10 | `10-interviewer-template-schedule.png` | 112,715 | `15CFFD86289716F10EABB0C643B4E11740B06D45593BC2AB847C87C507731503` | Scheduling modal for technical assessment with date picker, duration, and clash detection. |
+| 11 | `11-candidate-dashboard-interview.png` | 64,946 | `E2BB26CB698EC86AC047923C96C694A32EF0105C9A1A04935380BCF2089C0E18` | Candidate portal showing scheduled session card and prominent "Join Coding Room" button. |
+| 12 | `12-coding-room-collaboration.png` | 22,921 | `4F74F2176E494F6ECC646CE510729BB29127928ED3B0EBD534A007F2B746D0EF` | Dual-participant Monaco collaborative editor connected via WebSocket showing starter problem code. |
+| 13 | `13-coding-room-presence-cursors.png` | 22,200 | `31439FE6D26B37337F61CCB352E6D74AF816B93A054B02A2BF5155B9BB2EC90F` | Live collaborative typing state showing candidate implementation and footer status indicator "Jordan Candidate is typing...". |
+| 14 | `14-coding-room-refresh-recovery.png` | 20,737 | `5A641E0812218D1FEBB222315DD601012986EF9D8A147BECC0D7C92DD33BADFE` | Reconnection state showing instant recovery of buffer contents and presence after browser reload. |
+| 15 | `15-coding-room-code-execution.png` | 54,294 | `D5977C841348424AF9BCA94A7F88A31A2570C7341F3BA5FEFEAF214C2C7F155F` | Run Code panel displaying execution status Accepted, test pass counts (2/2), runtime, memory, and amber "Simulated result" badge. |
+| 16 | `16-coding-room-hidden-test-protection.png` | 58,380 | `7D2FBA06034331ADF7AD2581D70CDC4AF7A74B69B3B0FA455DB8DD3E78EF6CF7` | Run Code panel with Sample Test Case #1 expanded showing inputs and expected output, while Hidden Test Case #2 is protected with "Secret Data Redacted" badge. |
+| 17 | `17-interview-completed.png` | 84,424 | `BDC3F296C94D91761341C330AADC74CC39FF40F8A30110EDEED908C16986A310` | Interviewer dashboard displaying completed session status badge and "Report" action button. |
+| 18 | `18-candidate-report-view.png` | 76,781 | `AAF4CBA5191D749DFD7F5DC4AF67543D29EC7F5E13EB14EF96A64ADD66AE0467` | Assessment evaluation view displaying composite score, rubric breakdowns, and visible AI Advisory Disclaimer. |
+| 19 | `19-interviewer-report-override.png` | 84,954 | `80C5974F8ED3190613F3D78CDCAF990AC34D44301E047A385C7B366ED6F79903` | Interviewer human review form showing score adjustment (92/100) and justification notes. |
+| 20 | `20-ai-mock-practice-config.png` | 104,582 | `EFFB035C567A3AFB9B7BBEB00F741A6FE07691977D2A96E9202F61933B24C865` | AI Practice Mock configuration modal with domain selector and target duration. |
+| 21 | `21-ai-mock-practice-session.png` | 106,099 | `4445D654FB2952AD67763A2DA8CAA8FF80AF419CF9A624E714323DFAA0CF189E` | Active mock interview session showing AI technical prompt, timer, and answer input. |
+| 22 | `22-analytics-charts.png` | 63,929 | `BA3AB9EEC07C5D14384666DF1CCFEBF41508C37AC5611984821D1022EC291D46` | Visual performance progression analytics area with rendered AreaChart progression curve across completed assessments. |
+| 23 | `23-analytics-data-table.png` | 70,518 | `25E95618C3B71DD565E9182E76FFD088FE44C87773D9CDA43F625B83F009766A` | Accessible data table alternative displaying historical assessment metrics in tabular format. |
+| 24 | `24-theme-toggle.png` | 67,550 | `F0CC0EB5D50FE6E5FC943E431F95746DE73B557744E3D802BAE46CF2C7FB4A51` | High-contrast dark theme mode enabled via top navigation theme switch. |
+| 25 | `25-mobile-dashboard.png` | 41,862 | `D8806F93576E8D638D3E8D58D1035FD9D980B1728BDDD7AA96F68AFB859872FC` | Mobile responsive view (390x844) showing single-column stacked layout and accessible controls. |
+| 26 | `26-mobile-room.png` | 19,449 | `A5BF9A40309341C64077C35F8417104FB0460C270CD6CEA8B9C18C56BC276CD2` | Coding room viewport at 390x844 showing responsive layout, room header, participant badges, and visible rendered code lines. |
+| 27 | `27-empty-state.png` | 51,638 | `AB16541D5DD07D379C421409B5FD15680D8CA6740AF3388BAC8D75C025BC0FEF` | Question bank empty search state with clear feedback and filter adjustment prompt. |
+| 28 | `28-error-state.png` | 111,285 | `7E5D83D97C0F22B4EA5491EE9BF03DBBB4341F0CAA93CFA697F902CD328FECE0` | Form validation state highlighting invalid input format and preventing invalid submission. |
+| 29 | `29-security-candidate-forbidden-admin.png` | 14,459 | `C5FB188B97543A27A072342912266AB4890C5898C44A190AB299FE33DB40830F` | Privilege escalation defense proving non-admin users visiting `/admin` receive a dedicated 403 Access Denied card. |
+| 30 | `30-security-unauthenticated-redirect.png` | 15,330 | `AD368F1AC191D4F957718CCD3231AD5D267B9B55E93D4EB3285C2F7857EAB3F6` | Protected route enforcement redirecting unauthenticated visitors attempting to access protected routes to clean login form. |
+| 31 | `31-security-back-after-logout.png` | 17,732 | `E3D61D1E28D9BF0D51B73B0C07C224D56F4B105D66138521D4BA04853ECF4AE8` | Secure session termination screen confirming "You have been logged out securely. Session ended." and preventing browser back re-entry into protected sessions. |
 
 ---
 
@@ -268,3 +270,4 @@ To uphold absolute integrity, the following aspects were verified via in-memory 
 1. **Live Gemini API Cloud Billing**: AI prompts, structured XML parsing, and rubric synthesis were verified using the validated in-memory mock engine rather than live Google Cloud API tokens.
 2. **Multi-Tenant Judge0 Cluster**: Code execution was executed via the local in-memory worker sandbox rather than an isolated external Linux container cluster.
 3. **External SMTP Mail Relay**: Password reset and invite email delivery were validated via database tokens and local URLs rather than an external transactional SMTP service.
+

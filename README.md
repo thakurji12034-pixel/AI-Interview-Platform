@@ -26,12 +26,30 @@ IntelliPrep AI is a production-grade, secure full-stack technical assessment and
 - **Collaborative Coding Room (CRDT)**: Conflict-free real-time code synchronization powered by **Yjs** over Socket.io, with local self-hosted Monaco Editor bundling (zero CDN calls), multi-language syntax highlighting (JavaScript, Python, Java, C++), and server-authoritative observer mode.
 - **Interactive Code Execution Runner**: Dedicated `RunCodePanel` executing code against public test cases with custom inputs, asynchronous BullMQ queue processing, hidden test count disclosure without leaking test inputs/outputs, and execution metrics (runtime and memory).
 - **AI Mock Technical Practice**: Adaptive AI mock interview sessions powered by Google Gemini SDK with XML-delimiter prompt injection protection, server-authoritative timers, and sequential question progression.
-- **Multi-Dimensional Rubric Evaluations**: Server-authoritative weighted scoring across 5 rubric dimensions (Technical Correctness 35%, Problem Solving 25%, Explanation Quality 20%, Relevance 10%, Clarity 10%), human interviewer override controls, and statutory AI advisory disclaimers.
+- **Multi-Dimensional Rubric Evaluations**: Server-authoritative weighted scoring across 5 rubric dimensions (Technical Correctness 35%, Problem Solving 25%, Explanation Quality 20%, Relevance 10%, Clarity 10%), human interviewer override controls, and AI advisory disclaimers.
 - **Resume Intelligence & Job Matching**: Validated PDF dropzone (`%PDF-` validation, <5MB), canonical skill taxonomy extraction, and Job Description keyword overlap analyzer displaying match percentage and missing skills.
 - **Question Bank & Template Management**: Filter technical questions by domain (DSA, System Design, SQL, etc.) and difficulty, author questions with public and hidden test cases, and manage reusable interview templates.
-- **Role-Scoped Visual Analytics**: Candidate score progression, skill radars, interviewer score tier distributions, rubric dimension averages, and platform throughput metrics built with Recharts, complete with accessible HTML table fallbacks (WCAG 2.1 AA).
+- **Role-Scoped Visual Analytics**: Candidate score progression, skill radars, interviewer score tier distributions, rubric dimension averages, and platform throughput metrics built with Recharts, complete with accessible HTML table fallbacks, built with accessibility in mind (keyboard navigation, labels, contrast), not formally audited.
 - **Session Scheduling & Clash Detection**: Conflict detection preventing overlapping sessions for candidates and interviewers, with lifecycle state transitions (`scheduled` -> `in_progress` -> `completed` / `cancelled`).
 - **Production Single-VM Architecture**: Orchestrated via Docker Compose behind Caddy (automatic HTTPS and reverse proxying), running non-root Node.js 22 containers, MySQL 8, and Redis 7.
+
+---
+
+## Feature Status: Real / Simulated (mock) / Not live-verified
+
+| Feature / Subsystem | Implementation Status | Live-Verified in Repo | Description & Notes |
+|---|:---:|:---:|---|
+| **Relational Database (MySQL 8)** | **Real** | **Yes** | Native MySQL 8 queries, 23 Sequelize models, Umzug migrations, transactions, and foreign keys. |
+| **Authentication & RBAC** | **Real** | **Yes** | Salted bcrypt passwords, 15-min JWT access tokens (HS256 pinned), refresh token rotation in httpOnly cookie, role middleware. |
+| **Real-Time Collaboration (CRDT)** | **Real** | **Yes** | Socket.io 4 + Yjs CRDT synchronization with self-hosted Monaco editor, cursor tracking, and state persistence. |
+| **PDF Resume Parsing & Matching** | **Real / Simulated** | **Yes** | Binary `%PDF-` validation and text extraction via `pdf-parse`; skill taxonomy extraction and JD keyword matching. External OCR not integrated. |
+| **Visual Analytics & Accessibility** | **Real** | **Yes** | Recharts charts with accessible HTML data tables, built with accessibility in mind (keyboard navigation, labels, contrast), not formally audited. |
+| **Audit Logging & Security Headers** | **Real** | **Yes** | Immutable audit logs stored in MySQL; Helmet security headers, rate limiting on sensitive routes, and proxy trust. |
+| **Code Execution Engine** | **Simulated (mock)** | **Yes (in-memory)** | Evaluates test cases with simulated output badges in demo/dev mode. Production Judge0 / isolated container cluster is pluggable but not live-verified against cloud cluster in this repo. |
+| **AI Mock Interview & Evaluation** | **Simulated (mock)** | **Yes (in-memory)** | Gemini SDK interface implemented with XML delimiter prompt defense and schema validation; verified with mock engine. Live cloud billing token not exercised in automated tests. |
+| **Redis Cache & Queues** | **Real / Fallback** | **Yes** | Full `ioredis` and BullMQ queue architecture implemented; runs against real Redis daemon in Docker/production, with seamless in-memory fallback for standalone dev/CI. |
+| **Email SMTP Delivery** | **Not live-verified** | **Database-verified** | Invite tokens and password reset tokens generated and verified via database storage and direct acceptance URLs; live third-party transactional SMTP relay not connected. |
+| **Docker Compose Cloud Deployment** | **Static / Container Ready** | **Static Check** | Production Dockerfiles, `docker-compose.yml`, non-root user execution, memory limits, and Caddyfile reverse proxy configured; verified via `docker compose config`. |
 
 ---
 
@@ -68,7 +86,7 @@ flowchart TD
 | **Frontend** | React 19, Vite, Tailwind CSS v4 | Modern accessible SPA with utility-first styling |
 | **Code Editor** | `@monaco-editor/react`, `monaco-editor` | Bundled self-hosted Monaco editor (zero external CDN requests) |
 | **CRDT Collaboration** | `yjs`, `y-monaco`, `y-protocols` | Real-time conflict-free collaborative editing over WebSockets |
-| **Data Visualizations**| `recharts` | Accessible charts with screen-reader HTML data tables (WCAG AA) |
+| **Data Visualizations**| `recharts` | Accessible charts with screen-reader HTML data tables, built with accessibility in mind (keyboard navigation, labels, contrast), not formally audited |
 | **Backend Runtime** | Node.js (v22 LTS), Express 5 | REST API routing, rate limiting, and proxy handling (`trust proxy: 1`) |
 | **Real-time Sync** | Socket.io (v4) | WebSocket transport with fallback to long-polling and Yjs binary protocol |
 | **Database & ORM** | MySQL 8.0, Sequelize 6, Umzug | 23 relational tables, migrations, foreign key cascades, and indexes |

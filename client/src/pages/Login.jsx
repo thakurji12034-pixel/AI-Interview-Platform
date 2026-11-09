@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 const inputClass =
@@ -8,12 +8,14 @@ const inputClass =
 export default function Login() {
   const { user, login, register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isLoggedOut = searchParams.get('logged_out') === '1';
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'candidate' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  if (user) return <Navigate to="/" replace />;
+  if (user && !isLoggedOut) return <Navigate to="/" replace />;
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -40,6 +42,12 @@ export default function Login() {
         <p className="text-sm text-slate-500">
           {mode === 'login' ? 'Sign in to continue' : 'Create your account'}
         </p>
+
+        {isLoggedOut && (
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-800">
+            You have been logged out securely. Session ended.
+          </div>
+        )}
 
         {mode === 'register' && (
           <input name="name" placeholder="Full name" value={form.name} onChange={onChange} className={inputClass} required />

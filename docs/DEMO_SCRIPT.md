@@ -122,7 +122,7 @@
    - Submit response and close the session.
 2. **Visual Analytics & Accessible Data Table**:
    - Observe the Candidate **Score Progression Over Time** chart and **Skill Profile** radar (*Evidence: `22-analytics-charts.png`*).
-   - Click **Table View** to switch to the WCAG-compliant tabular representation (*Evidence: `23-analytics-data-table.png`*).
+   - Click **Table View** to switch to the tabular representation built with accessibility in mind (keyboard navigation, labels, contrast), not formally audited (*Evidence: `23-analytics-data-table.png`*).
 3. **Accessibility & Responsive Views**:
    - Click the theme toggle icon in the top navigation bar to switch between Light and Dark mode (*Evidence: `24-theme-toggle.png`*).
    - Demonstrate mobile responsiveness at 390x844 on both the Candidate Portal (*Evidence: `25-mobile-dashboard.png`*) and Coding Room (*Evidence: `26-mobile-room.png`*).
@@ -140,3 +140,4 @@
    - Observe the immediate redirect to `/login` (*Evidence: `30-security-unauthenticated-redirect.png`*).
    - Click the browser **Back** button.
    - Verify that the browser cannot re-enter protected routes or display cached user data (*Evidence: `31-security-back-after-logout.png`*).
+

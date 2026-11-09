@@ -26,7 +26,7 @@ export const AppShell = ({ children, activeTab, onTabChange }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    window.location.href = '/login?logged_out=1';
   };
 
   const getNavItems = () => {
