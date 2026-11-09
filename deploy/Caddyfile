@@ -5,6 +5,10 @@
 		reverse_proxy server:5000
 	}
 
+	handle /health/* {
+		reverse_proxy server:5000
+	}
+
 	handle /socket.io/* {
 		reverse_proxy server:5000
 	}

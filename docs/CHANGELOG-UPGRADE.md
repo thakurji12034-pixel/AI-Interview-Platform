@@ -411,7 +411,7 @@ No external production dependencies added in Phase 5 (implemented using standard
 | `client/src/components/layout/AppShell.jsx` | MODIFY | Embedded CapabilitiesBanner and added navigation links for Question Bank and Assessment Reports. | Navigation shell | Phase 11b |
 | `client/src/features/room/RunCodePanel.jsx` | ADD | Interactive coding runner panel with problem test cases, polling, submission status, hidden test redaction, and simulated badge. | `client/src/pages/Room.jsx` | Phase 11b |
 | `client/src/pages/Room.jsx` | MODIFY | Added "Run Code" drawer toggle and wired Monaco editor code accessor. | Live coding room | Phase 11b |
-| `client/src/features/reports/ReportView.jsx` | ADD | Comprehensive evaluation report view with dimension rubrics, overall score, strengths, recommendations, verified facts, human override form, and visible statutory AI disclaimer. | `client/src/pages/ReportsPage.jsx` | Phase 11b |
+| `client/src/features/reports/ReportView.jsx` | ADD | Comprehensive evaluation report view with dimension rubrics, overall score, strengths, recommendations, verified facts, human override form, and visible AI advisory disclaimer. | `client/src/pages/ReportsPage.jsx` | Phase 11b |
 | `client/src/pages/ReportsPage.jsx` | ADD | Dedicated reports page supporting both historical list view and detailed evaluation report views. | `client/src/App.jsx` | Phase 11b |
 | `client/src/features/resume/ResumeUploadModal.jsx` | ADD | PDF resume uploader validating %PDF- header, displaying extracted skill badges, and calculating keyword overlap match % against job descriptions. | `CandidateDashboard.jsx` | Phase 11b |
 | `client/src/features/practice/MockInterviewSession.jsx` | ADD | AI technical mock interview session with duration/domain configuration, live countdown timer, and sequential answer submission. | `CandidateDashboard.jsx` | Phase 11b |
@@ -425,8 +425,17 @@ No external production dependencies added in Phase 5 (implemented using standard
 | `client/src/__tests__/CapabilitiesBanner.test.jsx` | ADD | 3 unit tests verifying simulated system capability badges and honest demo mode disclosure. | Client test runner | Phase 11b |
 | `client/src/__tests__/RunCodePanel.test.jsx` | ADD | 2 unit tests verifying code execution runner, status polling, and hidden test redaction. | Client test runner | Phase 11b |
 | `client/src/__tests__/ResumeUploadModal.test.jsx` | ADD | 3 unit tests verifying PDF validation, skill extraction badges, and job description match scoring. | Client test runner | Phase 11b |
-| `client/src/__tests__/ReportView.test.jsx` | ADD | 2 unit tests verifying evaluation rubrics, human override controls, and statutory AI disclaimer. | Client test runner | Phase 11b |
+| `client/src/__tests__/ReportView.test.jsx` | ADD | 2 unit tests verifying evaluation rubrics, human override controls, and AI advisory disclaimer. | Client test runner | Phase 11b |
 | `DEPLOY.md` | MODIFY | Documented `ALLOW_MOCK_PROVIDERS` and `ALLOW_INMEMORY_REDIS` production requirements. | Deployment guide | Phase 11c |
 | `docs/MANUAL_STEPS.md` | MODIFY | Documented production deployment flags for mock vs live infrastructure. | Operations guide | Phase 11c |
 | `docs/LIVE_RUN_REPORT_2.md` | ADD | Comprehensive live run verification report capturing evidence across all Phase 11 frontend interfaces with 8 screenshots. | Verification report | Phase 11c |
 | `docs/PROGRESS.md` | MODIFY | Updated Phase 11 status to Done (138/138 tests: 128 server + 10 client). | Progress tracker | Phase 11c |
+| `docker-compose.yml` | MODIFY | Added 2GB VM memory limits/reservations on all 5 services, healthchecks on server/worker/caddy, Redis AOF persistence, and resumes_data volume. | Docker orchestration | Release Prep |
+| `server/Dockerfile` | MODIFY | Added `/app/storage/resumes` directory initialization and ownership for non-root execution. | Container runtime | Release Prep |
+| `deploy/Caddyfile` | MODIFY | Added `/health/*` reverse proxy block to forward health check probes to Node API. | Reverse proxy | Release Prep |
+| `.env.production.example` | ADD | Production environment template with grouped variables and secret generation instructions. | Production config | Release Prep |
+| `docs/AWS_DEPLOY_CHECKLIST.md` | ADD | Production deployment checklist for AWS EC2 (t4g/t3.small), DuckDNS, Docker, 2GB swap, smoke tests, backup/restore, cost breakdown. | Operations doc | Release Prep |
+| `scripts/dev-setup.ps1` | ADD | Local developer pre-flight validation script checking Node 22+, npm, MySQL, and .env without printing secrets. | Developer tooling | Release Prep |
+| `scripts/prepush-check.ps1` | ADD | Pre-push security and hygiene scanner checking for leaked secrets, private keys, SQL dumps, uploads, and large files. | Security tooling | Release Prep |
+| `docs/RUN_LOCALLY.md` | ADD | Step-by-step Windows PowerShell guide for running IntelliPrep AI from scratch. | Documentation | Release Prep |
+| `docs/verification/run-locally.md` | ADD | Documented execution proof of RUN_LOCALLY.md from scratch in isolated directory D:\tmp_verify with temporary database. | Verification doc | Release Prep |
