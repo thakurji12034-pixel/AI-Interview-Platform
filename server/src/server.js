@@ -1,27 +1,105 @@
-require('dotenv').config();
 const http = require('http');
+const config = require('./config/env');
+const { logger } = require('./utils/logger');
 const app = require('./app');
 const sequelize = require('./config/db');
 const { initSockets } = require('./sockets');
+const { closeRedis } = require('./config/redis');
+const { queueManager } = require('./jobs/queueManager');
 
 const server = http.createServer(app);
-initSockets(server); // Socket.io usi server par chalta hai
-const PORT = process.env.PORT || 5000;
+initSockets(server);
+const PORT = config.port;
+
+const MAX_RETRIES = 15;
+const RETRY_DELAY_MS = 3000;
+
+async function connectWithRetry() {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await sequelize.authenticate();
+      logger.info('MySQL database connection established successfully');
+      return;
+    } catch (err) {
+      logger.warn(
+        `Database connection attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`
+      );
+      if (attempt === MAX_RETRIES) {
+        throw new Error(
+          `Failed to connect to MySQL after ${MAX_RETRIES} attempts: ${err.message}`,
+          { cause: err }
+        );
+      }
+      logger.info(`Retrying database connection in ${RETRY_DELAY_MS / 1000}s...`);
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    }
+  }
+}
 
 async function start() {
   try {
-    await sequelize.authenticate();
-    console.log('MySQL connected');
+    await connectWithRetry();
 
-    await sequelize.sync();
+    // Disable sequelize.sync() outside test mode; schema changes are handled via migrations
+    if (config.env === 'test') {
+      await sequelize.sync();
+    }
 
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      logger.info(`Server running on port ${PORT} in ${config.env} mode`);
+      const { getRedisClient } = require('./config/redis');
+      const { startWorker } = require('./worker');
+      const redisClient = getRedisClient();
+      if (redisClient.isMock || config.redis.mock) {
+        startWorker();
+      }
     });
   } catch (err) {
-    console.error('Database connection failed:', err);
+    logger.error(`Server startup failure: ${err.message}`);
     process.exit(1);
   }
 }
+
+let isShuttingDown = false;
+async function handleShutdown(signal) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  logger.info(`Received ${signal}. Initiating graceful shutdown...`);
+
+  const closeDbAndRedis = async () => {
+    try {
+      await queueManager.closeAll();
+      await closeRedis();
+      await sequelize.close();
+      logger.info('Database and Redis connections closed gracefully');
+      process.exit(0);
+    } catch (dbErr) {
+      logger.error(`Error closing database or Redis connection: ${dbErr.message}`);
+      process.exit(1);
+    }
+  };
+
+  if (server.listening) {
+    server.close((err) => {
+      if (err) {
+        logger.error(`Error closing HTTP server: ${err.message}`);
+        process.exit(1);
+      }
+      logger.info('HTTP server closed');
+      closeDbAndRedis();
+    });
+  } else {
+    closeDbAndRedis();
+  }
+
+  // Force shutdown after 10s if graceful termination hangs
+  setTimeout(() => {
+    logger.error('Forced process termination due to shutdown timeout');
+    process.exit(1);
+  }, 10000).unref();
+}
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('SIGINT', () => handleShutdown('SIGINT'));
 
 start();

@@ -1,14 +1,15 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
-const { Interview } = require('../models');
+const { Interview, User } = require('../models');
+const config = require('../config/env');
+const { initYjsSockets } = require('./yjsHandler');
 
 const MAX_CODE_LENGTH = 50000;
 const LANGUAGES = ['javascript', 'python', 'java', 'cpp'];
-const CLEANUP_AFTER_MS = 10 * 60 * 1000; // khali room ka code 10 min baad hatega
+const CLEANUP_AFTER_MS = 10 * 60 * 1000; // Inactive room buffer expires after 10 minutes
 
-// roomId -> { code, language, timer }
-// Abhi memory me hai, server restart par chala jata hai
+// In-memory room store: Map<roomId, { code, language, timer }>
 const rooms = new Map();
 
 function getRoom(roomId) {
@@ -16,15 +17,15 @@ function getRoom(roomId) {
     rooms.set(roomId, { code: '', language: 'javascript', timer: null });
   }
   const room = rooms.get(roomId);
-  clearTimeout(room.timer); // koi wapas aaya, to cleanup cancel
+  clearTimeout(room.timer); // Cancel pending cleanup on participant return
   room.timer = null;
   return room;
 }
 
-function initSockets(server) {
+function initLegacySockets(server) {
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin: config.clientUrl,
       credentials: true,
     },
   });
@@ -39,16 +40,18 @@ function initSockets(server) {
     }, CLEANUP_AFTER_MS);
   };
 
-  // Har connection se pehle JWT verify hoga
+  // Authenticate socket handshake using JWT access token with pinned algorithm
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error('Access token missing'));
 
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      const payload = jwt.verify(token, config.jwt.secret, {
+        algorithms: [config.jwt.algorithm],
+      });
       socket.data.user = { id: payload.id, role: payload.role };
       next();
-    } catch (err) {
+    } catch (_err) {
       next(new Error('Invalid or expired token'));
     }
   });
@@ -63,12 +66,16 @@ function initSockets(server) {
           return ack({ ok: false, message: 'roomId required' });
         }
 
-        // DB se check: sirf us interview ka interviewer ya candidate hi join kare
+        // Authorize room join: user must be the assigned interviewer or candidate
         const interview = await Interview.findOne({
           where: {
             roomId,
             [Op.or]: [{ interviewerId: user.id }, { candidateId: user.id }],
           },
+          include: [
+            { model: User, as: 'interviewer', attributes: ['id', 'name'] },
+            { model: User, as: 'candidate', attributes: ['id', 'name'] },
+          ],
         });
         if (!interview) {
           return ack({ ok: false, message: 'Interview not found' });
@@ -84,16 +91,27 @@ function initSockets(server) {
         const participants = [...new Set(sockets.map((s) => s.data.user.id))];
 
         socket.to(roomId).emit('user:joined', { userId: user.id });
-        ack({ ok: true, code: room.code, language: room.language, participants });
+        ack({
+          ok: true,
+          code: room.code,
+          language: room.language,
+          participants,
+          interview: {
+            title: interview.title,
+            status: interview.status,
+            interviewer: { id: interview.interviewer?.id, name: interview.interviewer?.name },
+            candidate: { id: interview.candidate?.id, name: interview.candidate?.name },
+          },
+        });
       } catch (err) {
-        console.error(err);
+        console.error('Socket room:join error:', err);
         ack({ ok: false, message: 'Could not join room' });
       }
     });
 
     socket.on('code:change', (payload) => {
       const { roomId, code } = payload || {};
-      // Room me hona zaroori, aur size limit
+      // Verify user has joined the room and code adheres to size limit
       if (!socket.rooms.has(roomId)) return;
       if (typeof code !== 'string' || code.length > MAX_CODE_LENGTH) return;
 
@@ -140,4 +158,11 @@ function initSockets(server) {
   return io;
 }
 
-module.exports = { initSockets };
+function initSockets(server) {
+  if (config.collab?.engine === 'legacy') {
+    return initLegacySockets(server);
+  }
+  return initYjsSockets(server);
+}
+
+module.exports = { initSockets, initLegacySockets, initYjsSockets };

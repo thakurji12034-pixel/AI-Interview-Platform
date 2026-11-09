@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const validate = require('../middleware/validate');
 const auth = require('../middleware/auth');
-const authorize = require('../middleware/authorize');
+const { authLimiter, generalLimiter } = require('../middleware/rateLimiter');
 const { registerSchema, loginSchema } = require('../validators/authValidator');
 const {
   register,
@@ -11,15 +11,10 @@ const {
   me,
 } = require('../controllers/authController');
 
-router.post('/register', validate(registerSchema), register);
-router.post('/login', validate(loginSchema), login);
-router.post('/refresh', refresh);
+router.post('/register', authLimiter, validate(registerSchema), register);
+router.post('/login', authLimiter, validate(loginSchema), login);
+router.post('/refresh', generalLimiter, refresh);
 router.post('/logout', logout);
-router.get('/me', auth, me);
-
-// Sirf role guard test karne ke liye, baad me hata denge
-router.get('/interviewer-check', auth, authorize('interviewer'), (req, res) => {
-  res.json({ message: 'Welcome, interviewer' });
-});
+router.get('/me', generalLimiter, auth, me);
 
 module.exports = router;

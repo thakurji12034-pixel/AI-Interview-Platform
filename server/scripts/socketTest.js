@@ -62,7 +62,7 @@ const join = (socket, roomId) =>
     });
     const outToken = await login('outsider@example.com');
 
-    // Naya interview, random future date taaki time clash na ho
+    // New interview scheduled at a randomized future date to prevent scheduling conflicts
     const days = 10 + Math.floor(Math.random() * 300);
     const scheduledAt = new Date(Date.now() + days * 86400000).toISOString();
     const created = await post(
@@ -74,7 +74,7 @@ const join = (socket, roomId) =>
     check(created.status === 201 && !!roomId, 'interview created, roomId received');
     if (!roomId) return;
 
-    // 1. Bina token ke connection reject hona chahiye
+    // 1. Handshake without an access token must be rejected
     await connect(null).then(
       () => check(false, 'connection without token should be rejected'),
       (err) => check(err.message === 'Access token missing', 'no token -> connection rejected')
@@ -84,11 +84,11 @@ const join = (socket, roomId) =>
     const cd = await connect(cdToken);
     const out = await connect(outToken);
 
-    // 2. Bahar wala banda room join nahi kar sakta
+    // 2. Non-participant (outsider) must not be permitted into the room
     const outJoin = await join(out, roomId);
     check(outJoin.ok === false, 'outsider cannot join the room');
 
-    // 3. Interviewer aur candidate join karte hain
+    // 3. Authorized interviewer and candidate join successfully
     const ivJoin = await join(iv, roomId);
     check(ivJoin.ok === true, 'interviewer joined');
 
@@ -108,12 +108,12 @@ const join = (socket, roomId) =>
     cd.emit('typing', { roomId });
     check(!!(await typing), 'typing indicator received');
 
-    // 6. Room ke bahar wala code push nahi kar sakta
+    // 6. User outside the room must not be allowed to emit code changes
     const leak = waitFor(cd, 'code:update', 800);
     out.emit('code:change', { roomId, code: 'HACKED' });
     check((await leak) === null, 'outsider cannot push code into the room');
 
-    // 7. Reconnect: candidate nikle aur wapas aaye, to latest code mile
+    // 7. Reconnection: candidate disconnects and rejoins, receiving current room code state
     const left = waitFor(iv, 'user:left');
     cd.disconnect();
     check(!!(await left), 'interviewer notified that candidate left');
