@@ -1,3 +1,4 @@
+
 const { Sequelize } = require('sequelize');
 const config = require('./env');
 
@@ -7,15 +8,18 @@ const sequelize = new Sequelize(
   config.db.pass,
   {
     host: config.db.host,
-    port: Number(process.env.DB_PORT || 3306),
+    port: Number(process.env.DB_PORT || 4000),
     dialect: 'mysql',
+
     dialectOptions: {
       ssl: {
-        require: true,
-        rejectUnauthorized: false,
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: true,
       },
     },
+
     logging: false,
+
     pool: {
       max: 10,
       min: 0,
@@ -26,4 +30,3 @@ const sequelize = new Sequelize(
 );
 
 module.exports = sequelize;
-
